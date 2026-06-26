@@ -1,3 +1,4 @@
+import { deriveAccent } from '../lib/accentColor';
 import { vars } from './contract.css';
 
 /**
@@ -127,6 +128,24 @@ export function applyAccent(id: string, isLight: boolean): void {
   set(vars.color.onAccent, ink);
   // Focus ring tracks the accent hue at the theme's ring opacity.
   set(vars.shadow.focus, `0 0 0 3px ${rgba(fill, isLight ? 0.3 : 0.34)}`);
+}
+
+/**
+ * Override the accent contract vars from a freeform user-chosen hex (the custom
+ * picker). The onAccent ink, deeper accent2, weak tint, and focus ring are
+ * derived + AA-guarded in lib/accentColor.ts; here we only map them onto the
+ * contract vars on <html> so they layer over whichever theme is active.
+ */
+export function applyCustomAccent(hex: string, isLight: boolean): void {
+  const d = deriveAccent(hex, { isLight });
+  const el = document.documentElement;
+  const set = (ref: string, value: string) => el.style.setProperty(cssVarName(ref), value);
+
+  set(vars.color.accent, d.accent);
+  set(vars.color.accent2, d.accent2);
+  set(vars.color.accentWeak, d.accentWeak);
+  set(vars.color.onAccent, d.onAccent);
+  set(vars.shadow.focus, d.focus);
 }
 
 /** Remove the inline accent overrides, handing accent back to the theme class. */

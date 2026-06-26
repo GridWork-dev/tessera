@@ -172,6 +172,14 @@ globalStyle('html, body, #root', {
   minHeight: '100%',
 });
 
+// Declare support for BOTH schemes at the root so native UA chrome (scrollbars,
+// form controls, the canvas before the theme class mounts) renders sensibly in
+// either mode. The active theme class refines this to a concrete `dark`/`light`
+// (themes/color-scheme.css.ts), which wins on selector specificity.
+globalStyle('html', {
+  colorScheme: 'light dark',
+});
+
 globalStyle('body', {
   backgroundColor: vars.color.void,
   color: vars.color.fore,

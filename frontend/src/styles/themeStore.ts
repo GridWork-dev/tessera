@@ -1,4 +1,5 @@
-import { ACCENT_IDS, applyAccent, clearAccent, DEFAULT_ACCENT } from './accents';
+import { isHexColor } from '../lib/accentColor';
+import { ACCENT_IDS, applyAccent, applyCustomAccent, clearAccent, DEFAULT_ACCENT } from './accents';
 import { DEFAULT_THEME, isLightTheme, THEME_IDS, type ThemeId, themeClassName } from './themes';
 
 const STORAGE_KEY = 'mp-theme';
@@ -17,20 +18,26 @@ export function getStoredTheme(): ThemeId {
 export function getStoredAccent(): string {
   try {
     const v = localStorage.getItem(ACCENT_KEY);
-    if (v && ACCENT_IDS.includes(v)) return v;
+    // A stored accent is either a pre-vetted preset id or a freeform #hex.
+    if (v && (ACCENT_IDS.includes(v) || isHexColor(v))) return v;
   } catch {
     /* localStorage unavailable — fall through to default */
   }
   return DEFAULT_ACCENT;
 }
 
-/** Apply the accent overrides for `accentId` against the surface mode of `themeId`. */
-function paintAccent(accentId: string, themeId: ThemeId): void {
-  if (accentId === DEFAULT_ACCENT) {
+/** Apply the accent overrides for `accent` (preset id or #hex) against the surface mode of `themeId`. */
+function paintAccent(accent: string, themeId: ThemeId): void {
+  if (accent === DEFAULT_ACCENT) {
     // Default = the theme's own jade; hand accent back to the theme class.
     clearAccent();
+  } else if (ACCENT_IDS.includes(accent)) {
+    applyAccent(accent, isLightTheme(themeId));
+  } else if (isHexColor(accent)) {
+    // Freeform custom color — derive AA-guarded companions over the active mode.
+    applyCustomAccent(accent, isLightTheme(themeId));
   } else {
-    applyAccent(accentId, isLightTheme(themeId));
+    clearAccent();
   }
 }
 
