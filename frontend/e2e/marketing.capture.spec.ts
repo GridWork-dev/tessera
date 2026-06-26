@@ -44,7 +44,7 @@ test('semantic-search', async ({ page }) => {
   try {
     const box = page.getByPlaceholder(/Search/i).first();
     await box.click({ timeout: 5000 });
-    await box.pressSequentially('woman on a beach at sunset', { delay: 40 });
+    await box.pressSequentially('city skyline at night', { delay: 40 });
     await settle(page, 600);
     await page.screenshot({ path: path.join(OUT, 'hero-typed.png') }).catch(() => {});
     await box.press('Enter').catch(() => {});
@@ -77,9 +77,11 @@ test('inspector-and-similar', async ({ page }) => {
 });
 
 for (const [name, route] of [
+  ['people', '/people'],
   ['places', '/places'],
   ['events', '/events'],
   ['videos', '/videos'],
+  ['training', '/training'],
   ['dashboard', '/dashboard'],
 ] as Array<[string, string]>) {
   test(`page-${name}`, async ({ page }) => {

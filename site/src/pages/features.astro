@@ -51,6 +51,17 @@ const pillars = [
     shot: "Training · keep / reject",
   },
 ];
+
+// Product shots (license-clean synthetic demo data, no identifiable faces),
+// in pillar order. Rendered from the Tessera design system.
+const shots = [
+  { img: "/shots/feat-browse.jpg", alt: "Tessera semantic search returning sunset and coastline photos from a local library, with the inspector panel open" },
+  { img: "/shots/feat-people.jpg", alt: "Tessera grouping faces into named people clusters, computed on device" },
+  { img: "/shots/feat-places.jpg", alt: "Tessera places view clustering a library by city and location" },
+  { img: "/shots/feat-videos.jpg", alt: "Tessera video view with automatic scene detection, a scrubber, and keyframe posters" },
+  { img: "/shots/feat-inspector.jpg", alt: "Tessera inspector showing auto-generated tags and a written caption for a photo" },
+  { img: "/shots/feat-training.jpg", alt: "Tessera training mode with keep and reject controls that learn your taste" },
+];
 ---
 
 <Base title="Features" description="Semantic search, faces, places, video scenes, auto-tagging, and personalization — all running locally on your machine.">
@@ -76,10 +87,15 @@ const pillars = [
           </ul>
         </div>
         <div class="shot pillar__shot">
-          <span class="shot__frame">
-            <span class="shot__label">{p.shot}</span>
-            <span class="shot__hint">Interface preview</span>
-          </span>
+          <img
+            class="shot__img"
+            src={shots[i].img}
+            alt={shots[i].alt}
+            width="1440"
+            height="810"
+            loading="lazy"
+            decoding="async"
+          />
         </div>
       </div>
     </Section>
@@ -138,20 +154,19 @@ const pillars = [
     flex: none;
     margin-top: 2px;
   }
-  .shot__frame {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--s1);
+  .shot {
+    border-radius: var(--r-panel);
+    border: 1px solid var(--line);
+    overflow: hidden;
+    background: var(--sunken);
+    box-shadow: var(--shadow-pop);
   }
-  .shot__label {
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: var(--fore2);
-  }
-  .shot__hint {
-    font-size: 0.72rem;
-    color: var(--fore3);
+  .shot__img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
   }
   .cta-band {
     display: flex;

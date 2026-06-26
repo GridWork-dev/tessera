@@ -11,9 +11,19 @@ interface Props {
   poster?: string;
   caption?: string;
   class?: string;
+  // controls=true → click-to-play with native controls, preload=none, no
+  // autoplay/loop (for the longer 60s tour). Default false = autoplay hero loop.
+  controls?: boolean;
 }
 
-const { src, webm, poster, caption = "Product demo · coming soon", class: cls } = Astro.props;
+const {
+  src,
+  webm,
+  poster,
+  caption = "Product demo · coming soon",
+  class: cls,
+  controls = false,
+} = Astro.props;
 ---
 
 <figure class:list={["video", { "video--filled": !!src }, cls]}>

@@ -37,7 +37,7 @@ const licensingFaqs = [
     <PageHeader
       eyebrow="Pricing"
       title="Free forever. Pro once — no subscription."
-      lead="The full local pipeline is open source. Pro adds power features and support for a single one-time price."
+      lead="The full local pipeline is open source and free today. Pro — power features and priority support for one one-time price — is in active development and not yet for sale."
     />
     <div class="grid grid--2 plans">
       <PlanCard
@@ -54,13 +54,14 @@ const licensingFaqs = [
       <PlanCard
         name="Pro"
         price={PRICE_PRO}
-        cadence="one-time · perpetual for this major"
+        cadence="one-time · in development"
         blurb="Power features and priority support. Pay once, own it — no subscription, no phone-home."
         features={["Everything in Free", "Advanced personalization", "Bring-your-own remote compute key", "Priority email support"]}
-        ctaLabel="Buy Pro"
+        ctaLabel="Coming soon"
         ctaHref={POLAR_CHECKOUT_URL}
         ctaVariant="primary"
         featured
+        comingSoon
       />
     </div>
   </Section>

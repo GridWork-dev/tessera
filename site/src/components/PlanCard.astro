@@ -13,6 +13,7 @@ interface Props {
   ctaVariant?: "primary" | "ghost";
   external?: boolean;
   featured?: boolean;
+  comingSoon?: boolean;
 }
 
 const {
@@ -26,11 +27,14 @@ const {
   ctaVariant = "ghost",
   external,
   featured,
+  comingSoon,
 } = Astro.props;
 ---
 
 <article class:list={["plan", { "plan--featured": featured }]}>
-  {featured && <span class="plan__badge">Most popular</span>}
+  {comingSoon
+    ? <span class="plan__badge plan__badge--soon">Coming soon</span>
+    : featured && <span class="plan__badge">Most popular</span>}
   <h3 class="plan__name">{name}</h3>
   <div class="plan__price">
     <span class="plan__amount">{price}</span>
@@ -50,9 +54,9 @@ const {
   </ul>
 
   <div class="plan__cta">
-    <Button href={ctaHref} variant={ctaVariant} external={external} class="plan__btn">
-      {ctaLabel}
-    </Button>
+    {comingSoon
+      ? <span class="plan__soon" aria-disabled="true">Coming soon</span>
+      : <Button href={ctaHref} variant={ctaVariant} external={external} class="plan__btn">{ctaLabel}</Button>}
   </div>
 </article>
 
@@ -84,6 +88,10 @@ const {
     border: 1px solid var(--accent2);
     border-radius: var(--r-pill);
     padding: 4px 10px;
+  }
+
+  .plan__badge--soon {
+    color: var(--accent);
   }
 
   .plan__name {
@@ -141,5 +149,23 @@ const {
   .plan__cta :global(.plan__btn) {
     width: 100%;
     justify-content: center;
+  }
+
+  /* Pro is in development — a non-interactive, clearly-disabled CTA. */
+  .plan__soon {
+    display: inline-flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    gap: var(--s2);
+    border-radius: var(--r-button);
+    padding: 10px var(--s4);
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
+    color: var(--fore3);
+    background: var(--surface);
+    border: 1px dashed var(--line2);
+    cursor: not-allowed;
   }
 </style>

@@ -171,14 +171,21 @@ export const themeOptionActive = style({
   color: vars.color.fore,
 });
 
-/* Accent picker — a constrained row of pre-vetted swatches (not a hue wheel).
-   The fill comes from a per-button `--swatch` CSS var (mode-resolved hex). */
+/* Accent picker — pre-vetted preset swatches plus a freeform custom color.
+   The fill comes from a per-control `--swatch` CSS var (mode-resolved hex). */
+
+export const accentRow = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: vars.space['2'],
+  marginTop: vars.space['1'],
+});
 
 export const accentSwitch = style({
   display: 'flex',
   flexWrap: 'wrap',
   gap: vars.space['2'],
-  marginTop: vars.space['1'],
 });
 
 export const accentSwatch = style({
@@ -200,6 +207,7 @@ export const accentSwatch = style({
 
 export const accentSwatchActive = style({
   borderColor: vars.color.fore,
+  borderStyle: 'solid',
   // A soft halo so the selected swatch reads as committed without recoloring.
   boxShadow: `0 0 0 2px ${vars.color.panel}, 0 0 0 4px var(--swatch)`,
 });
@@ -209,4 +217,40 @@ export const accentCheck = style({
   // contrast on that hue) and passed as `--tick`, so the tick stays legible on
   // both the bright dark-mode swatches and the deeper light-mode ones.
   color: 'var(--tick)',
+});
+
+/* Custom accent — a freeform color via the native <input type="color">, hidden
+   behind a swatch-shaped label. A dashed border in the empty state reads as
+   "add your own"; once chosen it adopts the active swatch treatment. */
+
+export const customSwatch = style({
+  position: 'relative',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '32px',
+  height: '32px',
+  borderRadius: vars.radius.pill,
+  border: `2px dashed ${vars.color.line2}`,
+  background: 'var(--swatch)',
+  color: vars.color.fore3,
+  cursor: 'pointer',
+  transition: `border-color ${vars.motion.durFast} ${vars.motion.easeOut}, box-shadow ${vars.motion.durFast} ${vars.motion.easeOut}`,
+  selectors: {
+    '&:hover': { borderColor: vars.color.fore3, color: vars.color.fore2 },
+    // Native input focus is invisible (opacity 0); surface a ring on the label.
+    '&:focus-within': { borderColor: vars.color.accent, boxShadow: vars.shadow.focus },
+  },
+});
+
+export const customInput = style({
+  position: 'absolute',
+  inset: 0,
+  width: '100%',
+  height: '100%',
+  margin: 0,
+  padding: 0,
+  border: 0,
+  opacity: 0,
+  cursor: 'pointer',
 });

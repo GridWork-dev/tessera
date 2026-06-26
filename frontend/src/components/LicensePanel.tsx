@@ -2,7 +2,7 @@ import { BadgeCheck, Check, KeyRound, Lock, Trash2, TriangleAlert, Upload, X } f
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ApiError } from '../api/client';
 import type { LicenseStatus, ProFeatures } from '../api/license';
-import { getLicense, removeLicense, saveLicense } from '../api/license';
+import { getLicense, PRO_AVAILABLE, removeLicense, saveLicense } from '../api/license';
 import * as css from './LicensePanel.css';
 
 /** The three (and only) capabilities Pro unlocks. No content is ever gated. */
@@ -15,13 +15,64 @@ const FEATURES: ReadonlyArray<{ key: keyof ProFeatures; label: string }> = [
 type Msg = { kind: 'ok' | 'error'; text: string };
 
 /**
- * Settings → License (Spec J / PART 5). Shows the current entitlement, what Pro
- * unlocks, a soft dismissible upgrade note, and a local activate/remove flow.
- * Verification is OFFLINE (Ed25519 vs a baked-in public key); pasting a token
- * only writes a local `license.key` — nothing phones home. Removing it reverts
- * to Free and never bricks the app.
+ * Settings → License (Spec J / PART 5). Pro is in development: while
+ * PRO_AVAILABLE is false (Polar checkout isn't live yet) we render a "Coming
+ * soon" card instead of the activation flow. The offline-verify backend stays in
+ * place but unsurfaced; flip the flag in api/license.ts once checkout ships and
+ * the full activation flow returns. Split into a hookless wrapper + two children
+ * so the activation hooks only mount when Pro is live (rules-of-hooks clean).
  */
 export function LicensePanel() {
+  return PRO_AVAILABLE ? <LicenseActivation /> : <ProComingSoon />;
+}
+
+/** Coming-soon state — shows what Pro WILL unlock, no activation surface. */
+function ProComingSoon() {
+  return (
+    <div className={css.card}>
+      <div className={css.header}>
+        <span className={css.glyph} aria-hidden="true">
+          <KeyRound size={18} />
+        </span>
+        <div className={css.headerText}>
+          <p className={css.subtitle}>
+            Pro is in development. The app is fully usable now — nothing is ever gated.
+          </p>
+        </div>
+      </div>
+
+      <div className={css.statusRow}>
+        <span className={css.statusLabel}>Status</span>
+        <span className={css.statusValue}>Free</span>
+      </div>
+
+      <ul className={css.featureList}>
+        {FEATURES.map(({ key, label }) => (
+          <li key={key} className={css.featureRow}>
+            <Lock size={14} className={css.featureIconOff} aria-hidden="true" />
+            <span className={css.featureName}>{label}</span>
+            <span className={css.featureState}>Coming soon</span>
+          </li>
+        ))}
+      </ul>
+      <p className={css.freeNote}>
+        Core features and uncensored local search are always free — no content is ever gated.
+      </p>
+
+      <div className={css.upgradeNote} role="note">
+        <Lock size={14} className={css.upgradeIcon} aria-hidden="true" />
+        <span className={css.upgradeText}>
+          Pro will add bulk export, remote compute routing, and priority support — a one-time{' '}
+          <span className={css.upgradePrice}>$29</span> purchase, perpetual for this major version.
+          Not available yet.
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/** Live activation flow (Spec J). Mounts only when PRO_AVAILABLE is true. */
+function LicenseActivation() {
   const [status, setStatus] = useState<LicenseStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);

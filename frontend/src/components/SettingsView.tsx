@@ -1,5 +1,6 @@
-import { Check } from 'lucide-react';
+import { Check, Pipette } from 'lucide-react';
 import { type CSSProperties, useState } from 'react';
+import { isHexColor } from '../lib/accentColor';
 import { ACCENTS, accentInk } from '../styles/accents';
 import { getStoredAccent, getStoredTheme, setAccent, setTheme } from '../styles/themeStore';
 import { isLightTheme, THEME_IDS, type ThemeId } from '../styles/themes';
@@ -81,6 +82,10 @@ export function SettingsView() {
     setAccent(id);
     setAccentState(id);
   };
+  // A hex (vs a preset id) in the accent slot means a freeform custom color is
+  // active; seed the native picker from it, else from the jade default.
+  const isCustom = isHexColor(accent);
+  const customColor = isCustom ? accent : '#2fd6a0';
 
   return (
     <div className={s.appFrame}>
@@ -97,7 +102,8 @@ export function SettingsView() {
             <div className={css.sectionHead}>
               <h2 className={css.sectionTitle}>License</h2>
               <p className={css.sectionLead}>
-                Activate a key to unlock Pro features. The app is fully usable without one.
+                Pro is in development — coming soon. The app is fully usable now, and nothing is
+                ever gated.
               </p>
             </div>
             <LicensePanel />
@@ -133,27 +139,56 @@ export function SettingsView() {
 
               <div className={css.appearanceGroup}>
                 <span className={css.groupLabel}>Accent</span>
-                <div className={css.accentSwitch} role="radiogroup" aria-label="Accent color">
-                  {ACCENTS.map((a) => {
-                    const active = accent === a.id;
-                    const swatch = isLightTheme(theme) ? a.light : a.dark;
-                    return (
-                      // biome-ignore lint/a11y/useSemanticElements: styled swatch picker intentionally uses the ARIA radiogroup/radio pattern (native inputs can't carry the swatch styling)
-                      <button
-                        key={a.id}
-                        type="button"
-                        role="radio"
-                        aria-checked={active}
-                        aria-label={a.label}
-                        title={a.label}
-                        className={`${css.accentSwatch}${active ? ` ${css.accentSwatchActive}` : ''}`}
-                        style={{ '--swatch': swatch, '--tick': accentInk(swatch) } as CSSProperties}
-                        onClick={() => selectAccent(a.id)}
-                      >
-                        {active && <Check size={14} aria-hidden className={css.accentCheck} />}
-                      </button>
-                    );
-                  })}
+                <div className={css.accentRow}>
+                  <div className={css.accentSwitch} role="radiogroup" aria-label="Accent color">
+                    {ACCENTS.map((a) => {
+                      const active = accent === a.id;
+                      const swatch = isLightTheme(theme) ? a.light : a.dark;
+                      return (
+                        // biome-ignore lint/a11y/useSemanticElements: styled swatch picker intentionally uses the ARIA radiogroup/radio pattern (native inputs can't carry the swatch styling)
+                        <button
+                          key={a.id}
+                          type="button"
+                          role="radio"
+                          aria-checked={active}
+                          aria-label={a.label}
+                          title={a.label}
+                          className={`${css.accentSwatch}${active ? ` ${css.accentSwatchActive}` : ''}`}
+                          style={
+                            { '--swatch': swatch, '--tick': accentInk(swatch) } as CSSProperties
+                          }
+                          onClick={() => selectAccent(a.id)}
+                        >
+                          {active && <Check size={14} aria-hidden className={css.accentCheck} />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {/* Custom — any color via the native picker; onAccent / focus ring /
+                      weak tint are derived + AA-guarded in lib/accentColor.ts. */}
+                  <label
+                    className={`${css.customSwatch}${isCustom ? ` ${css.accentSwatchActive}` : ''}`}
+                    title="Custom color"
+                    style={
+                      {
+                        '--swatch': isCustom ? customColor : 'transparent',
+                        '--tick': accentInk(customColor),
+                      } as CSSProperties
+                    }
+                  >
+                    {isCustom ? (
+                      <Check size={14} aria-hidden className={css.accentCheck} />
+                    ) : (
+                      <Pipette size={14} aria-hidden />
+                    )}
+                    <input
+                      type="color"
+                      className={css.customInput}
+                      aria-label="Custom accent color"
+                      value={customColor}
+                      onChange={(e) => selectAccent(e.target.value)}
+                    />
+                  </label>
                 </div>
               </div>
             </div>

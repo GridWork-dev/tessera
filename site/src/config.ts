@@ -15,6 +15,11 @@ export const POLAR_CHECKOUT_URL = "#";
 export const PRICE_PRO = "$29";
 export const PRICE_FREE = "$0";
 
+// Pro is in active development — Polar checkout is not live yet. While this is
+// false, every Pro CTA renders as a disabled "Coming soon" and no purchase link
+// is shown anywhere on the site. Flip to true once checkout is wired.
+export const PRO_AVAILABLE = false;
+
 // Contact — obfuscated at render time.
 const DOMAIN = "gettessera.xyz";
 export const EMAIL_CONTACT = `admin@${DOMAIN}`;

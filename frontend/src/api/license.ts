@@ -41,3 +41,9 @@ export const saveLicense = (token: string): Promise<LicenseMutation> =>
 /** Remove the local license.key — reverts to Free. Never bricks anything. */
 export const removeLicense = (): Promise<LicenseMutation> =>
   delJson<LicenseMutation>('/api/license');
+
+// Pro is in active development — Polar checkout isn't live yet. While this is
+// false, Settings → License renders a "Coming soon" card instead of the
+// activation flow (the offline-verify backend stays in place, dormant). Flip to
+// true once checkout ships. Mirrors the marketing site's config.ts PRO_AVAILABLE.
+export const PRO_AVAILABLE = false;

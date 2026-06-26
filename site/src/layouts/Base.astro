@@ -2,14 +2,18 @@
 import "../styles/global.css";
 import Nav from "../components/Nav.astro";
 import Footer from "../components/Footer.astro";
-import { SITE_NAME } from "../config";
+import JsonLd from "../components/JsonLd.astro";
+import { SITE_NAME, RELEASES_URL } from "../config";
 
 interface Props {
   title: string;
   description?: string;
+  // Per-page schema.org graph. When set, REPLACES the site-wide default below
+  // (pass the default's entries plus your own if you want both).
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
-const { title, description } = Astro.props;
+const { title, description, jsonLd } = Astro.props;
 const fullTitle = title === SITE_NAME ? title : `${title} · ${SITE_NAME}`;
 const desc =
   description ??
@@ -19,6 +23,50 @@ const desc =
 // astro.config.mjs; resolving against it yields fully-qualified hrefs.
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const ogImage = new URL("/og.png", Astro.site).href;
+const siteUrl = Astro.site?.href ?? "https://gettessera.xyz/";
+
+// Site-wide structured data: a linked @graph of Organization + WebSite +
+// SoftwareApplication. This is the one SEO primitive the site lacked; it drives
+// app/rich cards and is the canonical place Google reads license + OS. Pro is in
+// development (not for sale yet), so only the Free offer is advertised here.
+const defaultGraph = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${siteUrl}#org`,
+      name: "GridWork",
+      url: siteUrl,
+      logo: new URL("/favicon.svg", Astro.site).href,
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${siteUrl}#website`,
+      name: SITE_NAME,
+      url: siteUrl,
+      publisher: { "@id": `${siteUrl}#org` },
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": `${siteUrl}#app`,
+      name: SITE_NAME,
+      applicationCategory: "MultimediaApplication",
+      operatingSystem: "macOS, Windows, Linux",
+      url: siteUrl,
+      downloadUrl: RELEASES_URL,
+      description: desc,
+      image: ogImage,
+      offers: {
+        "@type": "Offer",
+        name: "Free",
+        price: "0",
+        priceCurrency: "USD",
+        availability: "https://schema.org/InStock",
+      },
+      publisher: { "@id": `${siteUrl}#org` },
+    },
+  ],
+};
 ---
 
 <!doctype html>
@@ -41,6 +89,7 @@ const ogImage = new URL("/og.png", Astro.site).href;
     <meta name="twitter:description" content={desc} />
     <meta name="twitter:image" content={ogImage} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <JsonLd schema={jsonLd ?? defaultGraph} />
   </head>
   <body>
     <a href="#main" class="sr-only">Skip to content</a>
