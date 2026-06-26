@@ -136,3 +136,8 @@ uv.lock
 # The docs content collection lives under a `content/` dir but is SOURCE (markdown),
 # not the media library — re-include it (the line-2 `content/` rule would eat it).
 !site/src/content/
+
+# box-local maintainer overlay (symlinks; never published)
+config.yaml
+/venv
+/frontend/node_modules
