@@ -1,0 +1,178 @@
+---
+import Base from "../layouts/Base.astro";
+import Section from "../components/Section.astro";
+import PageHeader from "../components/PageHeader.astro";
+import Icon from "../components/Icon.astro";
+import Button from "../components/Button.astro";
+import "../styles/content.css";
+import { SITE_NAME, DOWNLOADS, RELEASES_URL, GITHUB_URL } from "../config";
+
+const reqs = [
+  { os: "macOS", body: "macOS 13 Ventura or newer · Apple silicon or Intel · 8 GB RAM (16 GB recommended)" },
+  { os: "Windows", body: "Windows 10/11 64-bit · 8 GB RAM (16 GB recommended) · DirectX 12 GPU recommended" },
+  { os: "Linux", body: "x86_64 · glibc 2.31+ · 8 GB RAM (16 GB recommended) · AppImage, no install needed" },
+];
+---
+
+<Base title="Download" description={`Download ${SITE_NAME} for macOS, Windows, or Linux. Free and open source. First run downloads ~3.5 GB of local models, then works fully offline.`}>
+  <Section>
+    <PageHeader
+      eyebrow="Download"
+      title={`Install ${SITE_NAME}. Keep your library yours.`}
+      lead="Free and open source. Pick your platform — every release publishes SHA-256 checksums so you can verify your download."
+    />
+
+    <div class="grid grid--3 dl-grid">
+      {DOWNLOADS.map((d) => (
+        <a class="dl card" href={RELEASES_URL} target="_blank" rel="noopener noreferrer">
+          <Icon name={d.icon} size={30} />
+          <div class="dl__os">{d.os}</div>
+          <div class="dl__ext muted">{d.ext}</div>
+          <div class="dl__note muted">{d.note}</div>
+          <span class="dl__cta">
+            <Icon name="download" size={16} /> Download
+          </span>
+        </a>
+      ))}
+    </div>
+
+    <div class="note">
+      <Icon name="info" size={18} />
+      <p>
+        <strong>First run downloads ~3.5 GB of models.</strong> After that, {SITE_NAME} runs
+        fully offline — no further network calls are required to index, search, or browse.
+      </p>
+    </div>
+  </Section>
+
+  <Section tone="panel">
+    <header class="block-head">
+      <p class="eyebrow">System requirements</p>
+      <h2>What you'll need.</h2>
+    </header>
+    <div class="grid grid--3">
+      {reqs.map((r) => (
+        <div class="card req">
+          <h3 class="req__os">{r.os}</h3>
+          <p class="muted req__body">{r.body}</p>
+        </div>
+      ))}
+    </div>
+    <p class="muted reqs-note">Roughly 10 GB of free disk is recommended for the app plus downloaded models.</p>
+  </Section>
+
+  <Section>
+    <div class="verify card">
+      <Icon name="shield-check" size={24} />
+      <div>
+        <h3>Verify every download</h3>
+        <p class="muted">
+          Every release publishes <strong>SHA-256 checksums</strong> so you can confirm your
+          download is intact. Code signing and notarization land with the first stable
+          release. Prefer to build it yourself? The full source is on
+          <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">GitHub</a>.
+        </p>
+        <div class="verify__cta">
+          <Button href={RELEASES_URL} variant="ghost" icon="package" external>All releases & checksums</Button>
+        </div>
+      </div>
+    </div>
+  </Section>
+</Base>
+
+<style>
+  .dl-grid {
+    margin-top: var(--s6);
+  }
+  .dl {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s1);
+    transition: border-color 160ms ease-out;
+  }
+  .dl:hover {
+    border-color: var(--line2);
+    color: var(--fore);
+  }
+  .dl :global(svg:first-child) {
+    color: var(--accent);
+    margin-bottom: var(--s2);
+  }
+  .dl__os {
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+  .dl__ext {
+    font-size: 0.85rem;
+  }
+  .dl__note {
+    font-size: 0.85rem;
+    margin-top: var(--s2);
+  }
+  .dl__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s2);
+    margin-top: var(--s4);
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .note {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--s3);
+    margin-top: var(--s5);
+    padding: var(--s4);
+    background: var(--accent-weak);
+    border: 1px solid var(--accent2);
+    border-radius: var(--r-tile);
+    color: var(--fore2);
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+  .note :global(svg) {
+    color: var(--accent);
+    flex: none;
+    margin-top: 2px;
+  }
+
+  .req__os {
+    font-size: 1.05rem;
+    margin-bottom: var(--s2);
+  }
+  .req__body {
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+  .reqs-note {
+    margin-top: var(--s5);
+    font-size: 0.9rem;
+  }
+
+  .verify {
+    display: flex;
+    gap: var(--s4);
+    align-items: flex-start;
+  }
+  .verify :global(svg:first-child) {
+    color: var(--accent);
+    flex: none;
+  }
+  .verify h3 {
+    margin-bottom: var(--s2);
+  }
+  .verify p {
+    line-height: 1.6;
+  }
+  .verify__cta {
+    margin-top: var(--s4);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dl {
+      transition: none;
+    }
+  }
+</style>

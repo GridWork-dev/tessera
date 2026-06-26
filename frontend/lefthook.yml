@@ -1,0 +1,12 @@
+pre-commit:
+  commands:
+    biome:
+      glob: '*.{js,ts,cjs,mjs,jsx,tsx,json,jsonc,css}'
+      run: npx @biomejs/biome check --write --no-errors-on-unmatched --files-ignore-unknown=true --staged --colors=off
+      stage_fixed: true
+
+# Optional commit-msg gate (needs @commitlint/cli + config-conventional — not installed yet):
+# commit-msg:
+#   commands:
+#     commitlint:
+#       run: npx commitlint --edit {1}

@@ -1,0 +1,67 @@
+---
+import Base from "./Base.astro";
+import DocsSidebar from "../components/DocsSidebar.astro";
+import "../styles/content.css";
+
+interface Props {
+  title: string;
+  description?: string;
+  activeSlug?: string; // current doc id; omit on the /docs index landing
+}
+
+const { title, description, activeSlug } = Astro.props;
+---
+
+<Base title={title} description={description}>
+  <div class="container docshell">
+    <aside class="docshell__rail" aria-label="Documentation navigation">
+      <div class="docshell__rail-inner">
+        <DocsSidebar activeSlug={activeSlug} />
+      </div>
+    </aside>
+    <div class="docshell__main">
+      <slot />
+    </div>
+  </div>
+</Base>
+
+<style>
+  .docshell {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: var(--s8);
+    align-items: start;
+    padding-block: var(--s8);
+  }
+  .docshell__rail {
+    position: sticky;
+    top: 88px;
+    align-self: start;
+  }
+  .docshell__rail-inner {
+    max-height: calc(100vh - 112px);
+    overflow-y: auto;
+    padding-right: var(--s2);
+  }
+  .docshell__main {
+    min-width: 0;
+    padding-bottom: var(--s6);
+  }
+
+  @media (max-width: 900px) {
+    .docshell {
+      grid-template-columns: 1fr;
+      gap: var(--s6);
+      padding-block: var(--s6);
+    }
+    .docshell__rail {
+      position: static;
+      padding-bottom: var(--s5);
+      border-bottom: 1px solid var(--hair);
+    }
+    .docshell__rail-inner {
+      max-height: none;
+      overflow: visible;
+    }
+  }
+</style>

@@ -1,0 +1,138 @@
+# ── Content (the 362GB media library — NEVER commit) ──
+content/
+
+# ── Python ──
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+build/
+dist/
+.ruff_cache/
+
+# ── Module / tool caches ──
+.cache/
+.pytest_cache/
+.mypy_cache/
+node_modules/
+
+# ── Node / Frontend ──
+frontend/node_modules/
+frontend/dist/
+
+# ── Database (binary, large) ──
+data/catalog.db
+data/catalog.db-*
+data/cache/thumbs/
+data/*.idx
+
+# ── Model files ──
+*.gguf
+*.safetensors
+*.onnx
+# Explicit: the 1.2GB WD / 349MB JoyTag / bundled NudeNet weights stay box-only.
+models/*.onnx
+models/**/*.onnx
+models/
+checkpoints/
+mlx_model/
+.cache/huggingface/
+
+# Track small label/config files needed for tests + portability
+# (the big .onnx weights stay box-only via *.onnx above).
+!models/
+!models/wd-eva02/
+!models/wd-eva02/selected_tags.csv
+!models/joytag/
+!models/joytag/top_tags.txt
+!models/joytag/config.json
+
+# ── OS ──
+.DS_Store
+._*
+Thumbs.db
+ehthumbs.db
+
+# ── Logs ──
+*.log
+webui.log
+webui.pid
+
+# ── Temp / Backups ──
+*.bak
+*.old
+*.tmp
+
+# ── IDE ──
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ── Environment ──
+.env
+.env.local
+.env.*.local
+
+# ── Generated outputs (tracked structure, untracked content) ──
+data/grids/*.jpg
+rejected/
+filtered/
+data/samples/*.json
+data/screenshots/
+data/batch_progress.json
+
+# AI scratch (session summaries, dated artifacts) — structure tracked, .md ignored
+outputs/*.md
+outputs/**/*.md
+!outputs/**/.gitkeep
+
+# H100 offload — PRIVACY: local-only manifest, corpus staging, encrypted tarballs.
+# NONE of this may ever be committed (manifest maps temp ids -> person/rating/path).
+outputs/h100/
+
+# H100 Docker — baked ONNX weights staged for the build (large, box-only).
+docker/models/
+
+# ── Pi workspace runtime state (harness, not project) ──
+# NOTE: gitignore has NO inline comments — comments must be on their own line.
+/config.json
+/sessions/
+/sources/
+/.agents/
+
+# ── Impeccable design-hook local cache (generated, never tracked) ──
+.impeccable/
+
+# ── Serena (language server) ──
+# project.yml IS tracked (shared config); cache + local state are not.
+.serena/cache/
+.serena/project.local.yml
+
+# DB backups (local only)
+data/backups/
+
+# License issuance ledger (issuer-only; maps order_id -> customer/email/token).
+# Privacy + secrets: never commit the ledger or any license.key.
+outputs/licenses/
+license.key
+
+# E2E / H100 parity baseline — derived from the private library (tags/captions
+# describe image content). Box-only, never committed.
+data/validation/
+
+# Design mockups (scratch; may embed library thumbnail URLs). Box-only.
+outputs/mockups/
+
+.superpowers/
+scripts/serve.local.env
+uv.lock
+
+# wrangler local cache
+.wrangler/
+
+# The docs content collection lives under a `content/` dir but is SOURCE (markdown),
+# not the media library — re-include it (the line-2 `content/` rule would eat it).
+!site/src/content/

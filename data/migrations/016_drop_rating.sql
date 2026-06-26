@@ -1,0 +1,17 @@
+-- 016 — DROP images.rating: rating is now a removable label set (Wave 2c).
+-- The rating DATA was preserved in the Rating label set by migration 013
+-- (user_labels, set_id=1) and verified exact on the live DB, so dropping the
+-- column loses NOTHING. The machine `rating` TAG in the tags table (WD/VLM
+-- provenance) is UNTOUCHED. Already-placed library/<person>/<rating>/ relative
+-- paths stay as opaque strings — files are not moved.
+--
+-- DROP COLUMN needs SQLite >= 3.35 (the runtime is 3.53). It is idempotently
+-- guarded by pipeline.migrations.apply_migration (PRAGMA table_info — drop only
+-- IF the column still exists), mirroring how the runner guards ADD COLUMN.
+--
+-- DO NOT apply to the live data/catalog.db ad-hoc: the orchestrator applies it
+-- service-stopped AFTER the no-rating code is deployed (the running old code
+-- references images.rating, so 016 must FOLLOW the code deploy, never precede it).
+--   bash scripts/backup_db.sh
+--   python -m pipeline.migrations data/migrations/016_drop_rating.sql --db data/catalog.db
+ALTER TABLE images DROP COLUMN rating;

@@ -1,0 +1,32 @@
+---
+interface Props {
+  id?: string;
+  tone?: "void" | "panel"; // alternating surface
+  class?: string;
+}
+
+const { id, tone = "void", class: cls } = Astro.props;
+---
+
+<section id={id} class:list={["section", `section--${tone}`, cls]}>
+  <div class="container">
+    <slot />
+  </div>
+</section>
+
+<style>
+  .section {
+    padding-block: var(--s9);
+  }
+
+  .section--panel {
+    background: var(--panel);
+    border-block: 1px solid var(--hair);
+  }
+
+  @media (max-width: 640px) {
+    .section {
+      padding-block: var(--s8);
+    }
+  }
+</style>

@@ -1,0 +1,79 @@
+---
+import Base from "../layouts/Base.astro";
+import Section from "../components/Section.astro";
+import PageHeader from "../components/PageHeader.astro";
+import Mailto from "../components/Mailto.astro";
+import "../styles/content.css";
+import { SITE_NAME, EMAIL_SECURITY } from "../config";
+---
+
+<Base title="Privacy" description={`${SITE_NAME} collects nothing. Your library stays on your machine — there is no server copy, no telemetry, and no account.`}>
+  <Section>
+    <PageHeader
+      eyebrow="Legal"
+      title="Privacy"
+      lead="The short version: we collect nothing. The longer version is below, and it's still short."
+    />
+    <div class="prose legal">
+      <h2>Your library never leaves your machine</h2>
+      <p>
+        {SITE_NAME} indexes, searches, and understands your images and video locally.
+        Your assets, thumbnails, captions, faces, and embeddings are computed and stored
+        on your own device. We do not receive them, store them, or have any way to access
+        them. <strong>We host no user media.</strong>
+      </p>
+
+      <h2>No telemetry, no account</h2>
+      <p>
+        The app sends no analytics, crash reports, or usage pings. There is no account to
+        create and no login. You can run {SITE_NAME} on a fully offline machine after the
+        one-time model download.
+      </p>
+
+      <h2>This website</h2>
+      <p>
+        This marketing site is a static site with no third-party trackers, no advertising
+        pixels, and no analytics cookies. Our hosting provider may keep standard,
+        short-lived server logs (such as IP address and request time) for security and
+        operations; we don't use them to profile you.
+      </p>
+
+      <h2>Optional services you control</h2>
+      <ul>
+        <li>
+          <strong>Downloads</strong> are served from GitHub Releases; visiting those links
+          is subject to GitHub's privacy practices.
+        </li>
+        <li>
+          <strong>Bring-your-own compute</strong> is off by default. If you enable it, calls
+          go to the endpoint <em>you</em> configure, with <em>your</em> key — not to us.
+        </li>
+        <li>
+          <strong>Pro checkout</strong> is handled by our payment processor, which collects
+          only what's needed to complete your purchase. We never see your full card details.
+        </li>
+      </ul>
+
+      <h2>Your rights</h2>
+      <p>
+        Because we don't collect personal data through the app, there's little for us to
+        export or delete. For anything related to a Pro purchase, or any privacy question,
+        contact <Mailto email={EMAIL_SECURITY} />.
+      </p>
+
+      <p class="muted legal__updated">Last updated: 2026-06-24.</p>
+    </div>
+  </Section>
+</Base>
+
+<style>
+  .legal {
+    max-width: 72ch;
+  }
+  .legal__updated {
+    margin-top: var(--s6);
+    padding-top: var(--s5);
+    border-top: 1px solid var(--hair);
+    font-size: 0.9rem;
+  }
+</style>

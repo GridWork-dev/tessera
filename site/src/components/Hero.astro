@@ -1,0 +1,79 @@
+---
+import { RELEASES_URL, GITHUB_URL } from "../config";
+import Button from "./Button.astro";
+import VideoEmbed from "./VideoEmbed.astro";
+---
+
+<section class="hero">
+  <div class="container hero__inner">
+    <div class="hero__copy">
+      <p class="eyebrow">Private, local AI media library</p>
+      <h1>Your images &amp; video, understood — on your own machine.</h1>
+      <p class="lead hero__lead">
+        Private, local AI for your whole library: semantic search, faces, places,
+        video scenes, captions. No cloud, ever.
+      </p>
+      <div class="hero__cta">
+        <Button href={RELEASES_URL} icon="download" size="lg" external>Download</Button>
+        <Button href={GITHUB_URL} icon="code" variant="ghost" size="lg" external>
+          View source
+        </Button>
+      </div>
+      <p class="muted hero__note">Free &amp; open source · macOS · Windows · Linux</p>
+    </div>
+
+    <div class="hero__media">
+      <VideoEmbed
+        src="/hero.mp4"
+        webm="/hero.webm"
+        poster="/hero-poster.jpg"
+        caption="A 15-second look — search, similar, places. All on your machine."
+      />
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-top: var(--s9);
+    padding-bottom: var(--s8);
+    border-bottom: 1px solid var(--hair);
+    background:
+      radial-gradient(80% 60% at 15% 0%, var(--accent-weak) 0%, transparent 55%),
+      var(--void);
+  }
+
+  .hero__inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s7);
+    align-items: center;
+  }
+
+  .hero__lead {
+    margin-top: var(--s4);
+    max-width: 46ch;
+  }
+
+  .hero__cta {
+    display: flex;
+    gap: var(--s3);
+    margin-top: var(--s6);
+    flex-wrap: wrap;
+  }
+
+  .hero__note {
+    margin-top: var(--s4);
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 900px) {
+    .hero__inner {
+      grid-template-columns: 1fr;
+      gap: var(--s6);
+    }
+    .hero__media {
+      order: -1;
+    }
+  }
+</style>

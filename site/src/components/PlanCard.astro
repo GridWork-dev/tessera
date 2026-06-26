@@ -1,0 +1,145 @@
+---
+import Icon from "./Icon.astro";
+import Button from "./Button.astro";
+
+interface Props {
+  name: string;
+  price: string;
+  cadence?: string;
+  blurb: string;
+  features: string[];
+  ctaLabel: string;
+  ctaHref: string;
+  ctaVariant?: "primary" | "ghost";
+  external?: boolean;
+  featured?: boolean;
+}
+
+const {
+  name,
+  price,
+  cadence,
+  blurb,
+  features,
+  ctaLabel,
+  ctaHref,
+  ctaVariant = "ghost",
+  external,
+  featured,
+} = Astro.props;
+---
+
+<article class:list={["plan", { "plan--featured": featured }]}>
+  {featured && <span class="plan__badge">Most popular</span>}
+  <h3 class="plan__name">{name}</h3>
+  <div class="plan__price">
+    <span class="plan__amount">{price}</span>
+    {cadence && <span class="plan__cadence muted">{cadence}</span>}
+  </div>
+  <p class="muted plan__blurb">{blurb}</p>
+
+  <ul class="plan__features">
+    {
+      features.map((f) => (
+        <li class="plan__feature">
+          <Icon name="check" size={18} />
+          <span>{f}</span>
+        </li>
+      ))
+    }
+  </ul>
+
+  <div class="plan__cta">
+    <Button href={ctaHref} variant={ctaVariant} external={external} class="plan__btn">
+      {ctaLabel}
+    </Button>
+  </div>
+</article>
+
+<style>
+  .plan {
+    position: relative;
+    background: var(--panel2);
+    border: 1px solid var(--hair);
+    border-radius: var(--r-panel);
+    padding: var(--s6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--s4);
+  }
+
+  .plan--featured {
+    border-color: var(--accent2);
+    box-shadow: 0 0 0 1px var(--accent2);
+  }
+
+  .plan__badge {
+    position: absolute;
+    top: var(--s4);
+    right: var(--s4);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--fore3);
+    background: var(--accent-weak);
+    border: 1px solid var(--accent2);
+    border-radius: var(--r-pill);
+    padding: 4px 10px;
+  }
+
+  .plan__name {
+    font-size: 1.15rem;
+  }
+
+  .plan__price {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s2);
+  }
+
+  .plan__amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--fore);
+  }
+
+  .plan__cadence {
+    font-size: 0.9rem;
+  }
+
+  .plan__blurb {
+    font-size: 0.95rem;
+  }
+
+  .plan__features {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s3);
+    margin-block: var(--s2);
+  }
+
+  .plan__feature {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--s2);
+    color: var(--fore2);
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
+
+  .plan__feature :global(svg) {
+    color: var(--accent);
+    flex: none;
+    margin-top: 2px;
+  }
+
+  .plan__cta {
+    margin-top: auto;
+  }
+
+  .plan__cta :global(.plan__btn) {
+    width: 100%;
+    justify-content: center;
+  }
+</style>

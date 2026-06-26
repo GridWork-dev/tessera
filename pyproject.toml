@@ -1,0 +1,29 @@
+# Project metadata for distribution + tooling (audit P2).
+# Runtime dependencies are pinned in requirements.txt (the supported install
+# path); this file machine-declares the license (SPDX) and project metadata so
+# the AGPL status is discoverable by packaging/scanning tools. It is not yet a
+# build target — there is no [build-system]/wheel build wired.
+
+[project]
+name = "media-pipeline"
+version = "0.1.0"
+description = "Local-first, privacy-first, uncensored-capable AI media DAM for photos and video."
+requires-python = ">=3.14"
+license = "AGPL-3.0-only"
+authors = [{ name = "GridWork" }]
+keywords = ["media", "dam", "ai", "photos", "video", "local-first", "privacy"]
+classifiers = [
+  "License :: OSI Approved :: GNU Affero General Public License v3",
+  "Programming Language :: Python :: 3.14",
+  "Private :: Do Not Upload",
+]
+
+[project.urls]
+Source = "https://github.com/GridWork-dev/media-pipeline"
+
+[tool.ruff.lint]
+# Default rule set (E4/E7/E9/F) + import sorting (isort). Deliberately tight: the
+# broader opinionated sets (ANN/S/T20/SIM/UP/B, ...) are intentionally NOT adopted
+# (see docs/status/DEFERRED.md). except-tuple parens are left to the formatter
+# (PEP 758 canonical bare form on the inferred py314 target).
+extend-select = ["I"]

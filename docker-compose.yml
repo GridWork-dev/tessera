@@ -1,0 +1,38 @@
+# media-pipeline — self-host compose (BYO-compute, BYO-key, no bundled weights).
+#
+# This runs the FastAPI app + the local orchestration layer. Compute is BYO:
+#   - All-in-one local box: build with `--build-arg INSTALL_ML=1` and route every
+#     capability to the `local_mps` backend in config.yaml (needs a GPU/MPS host;
+#     Apple-MLX paths do NOT run inside Linux containers — use the native install
+#     for the MLX VLM tier, or point compute at a rented endpoint).
+#   - Rented/remote compute: keep this slim image and set the `rented_metal`
+#     backend `base_url` in config.yaml to your vLLM/SGLang/Triton endpoint.
+#
+# User media + the catalog DB live on the HOST and are bind-mounted in — the
+# image never contains them, and we never host your media.
+
+services:
+  app:
+    build:
+      context: .
+      args:
+        INSTALL_ML: "0"          # set to "1" for an all-in-one local-compute build
+    image: media-pipeline:latest
+    restart: unless-stopped
+    ports:
+      - "8000:8000"              # API + SPA (bind to 127.0.0.1:8000:8000 to keep it local-only)
+    volumes:
+      # Your content library (read-only is safest once normalized).
+      - ${MEDIA_PIPELINE_CONTENT:-./content}:/app/content:ro
+      # Persistent catalog.db + caches + indexes (read-write; SQLite is the SoT).
+      - ${MEDIA_PIPELINE_DATA:-./data}:/app/data
+    environment:
+      # BYO-key: only OpenRouter, only when a remote/vision route is opted into.
+      # Leave unset for a fully local, no-external-call install.
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      # Pro license token (optional; offline check, no phone-home). See pipeline/licensing.py.
+      - MEDIA_PIPELINE_LICENSE=${MEDIA_PIPELINE_LICENSE:-}
+    # Secrets file (BYO-key) — optional; values above also accept a .env file.
+    env_file:
+      - path: .env
+        required: false

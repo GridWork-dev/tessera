@@ -1,0 +1,23 @@
+---
+// Lucide-only icon wrapper. Decorative by default (aria-hidden).
+import { Icon as Iconify } from "astro-icon/components";
+
+interface Props {
+  name: string; // lucide icon name, e.g. "search"
+  size?: number;
+  label?: string; // when set, the icon is meaningful (not aria-hidden)
+  class?: string;
+}
+
+const { name, size = 20, label, class: cls } = Astro.props;
+---
+
+<Iconify
+  name={`lucide:${name}`}
+  width={size}
+  height={size}
+  class={cls}
+  aria-hidden={label ? undefined : "true"}
+  aria-label={label}
+  role={label ? "img" : undefined}
+/>

@@ -1,0 +1,198 @@
+/*
+ * Pigment — design tokens mirrored from DESIGN.md.
+ * Dark-only. 4pt spacing. Radii 8/9/12/16. Schibsted Grotesk, one typeface.
+ * One jade signal accent (#2fd6a0).
+ * Source of truth for the app: frontend/src/styles/{contract,theme}.css.ts.
+ */
+@import "@fontsource-variable/schibsted-grotesk";
+
+:root {
+  /* Surfaces (deep -> raised) */
+  --void: #0a0b0d;
+  --sunken: #0e1013;
+  --panel: #121419;
+  --panel2: #171a20;
+  --surface: #1b1e25;
+  --hover: #242833;
+  --active: #2f3540;
+
+  /* Hairlines */
+  --hair: #20242b;
+  --line: #262a32;
+  --line2: #373d48;
+
+  /* Text */
+  --fore: #eef0f4;
+  --fore2: #abb1bd;
+  --fore3: #868d98;
+  --fore4: #6c7280;
+  --on-accent: #04130d;
+
+  /* Accent — jade signal, single */
+  --accent: #2fd6a0;
+  --accent2: #1d7a5d;
+  --accent-weak: rgba(47, 214, 160, 0.13);
+
+  /* Rating colors — semantic data, never chrome */
+  --sfw: #5ead84;
+  --sugg: #cba85a;
+  --nsfw: #d27a7a;
+
+  /* Spacing — 4pt scale */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 64px;
+  --s9: 96px;
+
+  /* Radii */
+  --r-small: 8px;
+  --r-button: 9px;
+  --r-tile: 12px;
+  --r-panel: 16px;
+  --r-pill: 999px;
+
+  /* Elevation */
+  --shadow-pop: 0 18px 50px rgba(0, 0, 0, 0.6);
+  --focus: 0 0 0 3px rgba(47, 214, 160, 0.34);
+
+  --font-sans: "Schibsted Grotesk Variable", -apple-system, "Segoe UI", Roboto, system-ui, sans-serif;
+
+  --maxw: 1120px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--void);
+  color: var(--fore);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--fore);
+  background: var(--void);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1 0 auto;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  font-weight: 600;
+  color: var(--fore);
+}
+
+h1 {
+  font-size: clamp(2rem, 1.4rem + 2.6vw, 3.25rem);
+  font-weight: 700;
+}
+
+h2 {
+  font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem);
+}
+
+h3 {
+  font-size: 1.25rem;
+}
+
+p {
+  margin: 0;
+}
+
+ul {
+  margin: 0;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus);
+  border-radius: var(--r-button);
+}
+
+.container {
+  width: 100%;
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: var(--s5);
+}
+
+.eyebrow {
+  font-size: 12px;
+  color: var(--fore3);
+  font-weight: 600;
+}
+
+.lead {
+  font-size: clamp(1rem, 0.95rem + 0.4vw, 1.2rem);
+  color: var(--fore2);
+  line-height: 1.6;
+}
+
+.muted {
+  color: var(--fore3);
+}
+
+.hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 0;
+}
+
+/* Visually-hidden, still read by assistive tech */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

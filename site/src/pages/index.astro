@@ -1,0 +1,303 @@
+---
+import Base from "../layouts/Base.astro";
+import Hero from "../components/Hero.astro";
+import TrustStrip from "../components/TrustStrip.astro";
+import Section from "../components/Section.astro";
+import FeatureCard from "../components/FeatureCard.astro";
+import PlanCard from "../components/PlanCard.astro";
+import FaqItem from "../components/FaqItem.astro";
+import Button from "../components/Button.astro";
+import Icon from "../components/Icon.astro";
+import {
+  SITE_NAME,
+  RELEASES_URL,
+  POLAR_CHECKOUT_URL,
+  PRICE_PRO,
+  PRICE_FREE,
+  DOWNLOADS,
+} from "../config";
+
+const features = [
+  { icon: "search", title: "Semantic search", body: "Find anything in plain language — \"sunset on the coast,\" \"red dress, indoors.\" No tags required; the model understands the pixels." },
+  { icon: "users", title: "Faces & people", body: "Group every shot of a person locally. Face vectors never leave your machine — no cloud face database, ever." },
+  { icon: "map-pin", title: "Places & events", body: "Cluster by location and time into trips and moments, from EXIF you already have — no account, no map provider phoning home." },
+  { icon: "clapperboard", title: "Video scenes & transcripts", body: "Split clips into scenes, pull keyframes, and transcribe speech so video is as searchable as your stills." },
+  { icon: "tags", title: "Auto-tagging & captions", body: "Every asset gets structured tags and a written caption from local vision models — browsable, filterable, yours." },
+  { icon: "sparkles", title: "Personalization", body: "Learns your keep / reject taste over time and surfaces the frames you'd actually pick. It adapts to you, not the other way around." },
+];
+
+const steps = [
+  { icon: "folder-open", title: "Point it at your library", body: "Pick folders of images and video. Nothing is uploaded — indexing runs on your machine." },
+  { icon: "cpu", title: "It understands everything", body: "Local AI tags, captions, finds faces and places, and splits video into scenes — all offline." },
+  { icon: "search", title: "Search & rediscover", body: "Ask in plain language, filter by person or place, and let it learn what you keep." },
+];
+
+const faqs = [
+  { q: "Does anything leave my machine?", a: "No. Indexing, search, faces, and captions all run locally. There is no telemetry and no account. The only optional network call is if you choose to bring your own compute key for a faster remote model — and that is off by default." },
+  { q: "What does it cost?", a: `The Free edition is ${PRICE_FREE} and open source under AGPLv3. Pro is a one-time ${PRICE_PRO} purchase — perpetual for that major version, no subscription.` },
+  { q: "Will it run on my computer?", a: "If you have a reasonably modern Mac, PC, or Linux box with ~8 GB of free RAM and ~10 GB of disk for models, yes. The first run downloads about 3.5 GB of local models, then works fully offline." },
+];
+---
+
+<Base title={SITE_NAME} description="Private, local AI for your whole image and video library: semantic search, faces, places, video scenes, captions. No cloud, ever.">
+  <Hero />
+  <TrustStrip />
+
+  <Section>
+    <header class="block-head">
+      <p class="eyebrow">Everything, understood</p>
+      <h2>One private library, six ways to find what's in it.</h2>
+    </header>
+    <div class="grid grid--3">
+      {features.map((f) => <FeatureCard icon={f.icon} title={f.title}>{f.body}</FeatureCard>)}
+    </div>
+  </Section>
+
+  <Section tone="panel">
+    <header class="block-head">
+      <p class="eyebrow">How it works</p>
+      <h2>Three steps. No cloud in any of them.</h2>
+    </header>
+    <ol class="steps">
+      {steps.map((s, i) => (
+        <li class="step">
+          <span class="step__num">{String(i + 1).padStart(2, "0")}</span>
+          <div class="step__icon"><Icon name={s.icon} size={22} /></div>
+          <h3 class="step__title">{s.title}</h3>
+          <p class="muted step__body">{s.body}</p>
+        </li>
+      ))}
+    </ol>
+  </Section>
+
+  <section class="privacy-band">
+    <div class="container privacy-band__inner">
+      <Icon name="shield-check" size={28} />
+      <div>
+        <h2 class="privacy-band__title">Private by architecture, not by promise.</h2>
+        <p class="lead privacy-band__lead">
+          Your library stays on disk. There's no server to trust, no account to delete,
+          no breach to fear — because we never receive your library in the first place.
+        </p>
+      </div>
+      <Button href="/about" variant="ghost" iconRight="arrow-right">Our approach</Button>
+    </div>
+  </section>
+
+  <Section>
+    <header class="block-head">
+      <p class="eyebrow">Pricing</p>
+      <h2>Free forever. Pro once, if you want more.</h2>
+    </header>
+    <div class="grid grid--2 pricing-teaser">
+      <PlanCard
+        name="Free"
+        price={PRICE_FREE}
+        cadence="open source"
+        blurb="The full local pipeline, AGPLv3. Yours to run, audit, and self-host."
+        features={["Semantic search & auto-tagging", "Faces, places & video scenes", "100% local · no telemetry", "Self-host with Docker"]}
+        ctaLabel="Download"
+        ctaHref={RELEASES_URL}
+        ctaVariant="ghost"
+        external
+      />
+      <PlanCard
+        name="Pro"
+        price={PRICE_PRO}
+        cadence="one-time"
+        blurb="Power features and priority support. Perpetual for this major — no subscription."
+        features={["Everything in Free", "Advanced personalization", "Bring-your-own remote compute key", "Priority email support"]}
+        ctaLabel="Buy Pro"
+        ctaHref={POLAR_CHECKOUT_URL}
+        ctaVariant="primary"
+        featured
+      />
+    </div>
+    <p class="muted center pricing-teaser__note">
+      <a href="/pricing">See the full comparison →</a>
+    </p>
+  </Section>
+
+  <Section tone="panel">
+    <header class="block-head">
+      <p class="eyebrow">Download</p>
+      <h2>Get {SITE_NAME} for your platform.</h2>
+    </header>
+    <div class="grid grid--3 dl-strip">
+      {DOWNLOADS.map((d) => (
+        <a class="dl" href={RELEASES_URL} target="_blank" rel="noopener noreferrer">
+          <Icon name={d.icon} size={26} />
+          <div class="dl__os">{d.os}</div>
+          <div class="dl__ext muted">{d.ext}</div>
+          <div class="dl__note muted">{d.note}</div>
+        </a>
+      ))}
+    </div>
+    <p class="muted center dl-strip__note">First run downloads ~3.5 GB of models, then works fully offline.</p>
+  </Section>
+
+  <Section>
+    <header class="block-head">
+      <p class="eyebrow">FAQ</p>
+      <h2>The short version.</h2>
+    </header>
+    <div class="faq-list">
+      {faqs.map((f, i) => <FaqItem q={f.q} open={i === 0}>{f.a}</FaqItem>)}
+    </div>
+    <p class="muted center faq-teaser__note"><a href="/docs/faq">More questions →</a></p>
+  </Section>
+</Base>
+
+<style>
+  .block-head {
+    max-width: 52ch;
+    margin-bottom: var(--s6);
+  }
+  .block-head .eyebrow {
+    margin-bottom: var(--s2);
+  }
+
+  .grid {
+    display: grid;
+    gap: var(--s4);
+  }
+  .grid--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .grid--2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .center {
+    text-align: center;
+  }
+
+  /* How it works */
+  .steps {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--s5);
+  }
+  .step {
+    position: relative;
+    background: var(--panel2);
+    border: 1px solid var(--hair);
+    border-radius: var(--r-panel);
+    padding: var(--s5);
+  }
+  .step__num {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .step__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--r-tile);
+    display: grid;
+    place-items: center;
+    background: var(--accent-weak);
+    color: var(--accent);
+    border: 1px solid var(--accent2);
+    margin-block: var(--s3);
+  }
+  .step__title {
+    font-size: 1.05rem;
+    margin-bottom: var(--s2);
+  }
+  .step__body {
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+
+  /* Privacy band */
+  .privacy-band {
+    background:
+      radial-gradient(70% 120% at 100% 0%, var(--accent-weak) 0%, transparent 60%),
+      var(--void);
+    border-block: 1px solid var(--hair);
+    padding-block: var(--s8);
+  }
+  .privacy-band__inner {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--s5);
+  }
+  .privacy-band__inner :global(svg:first-child) {
+    color: var(--accent);
+  }
+  .privacy-band__title {
+    font-size: clamp(1.4rem, 1.2rem + 1vw, 1.9rem);
+  }
+  .privacy-band__lead {
+    margin-top: var(--s2);
+    max-width: 58ch;
+  }
+
+  .pricing-teaser__note,
+  .dl-strip__note,
+  .faq-teaser__note {
+    margin-top: var(--s5);
+  }
+
+  /* Download strip */
+  .dl {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s1);
+    padding: var(--s5);
+    background: var(--panel2);
+    border: 1px solid var(--hair);
+    border-radius: var(--r-panel);
+    transition: border-color 160ms ease-out;
+  }
+  .dl:hover {
+    border-color: var(--line2);
+    color: var(--fore);
+  }
+  .dl :global(svg) {
+    color: var(--accent);
+    margin-bottom: var(--s2);
+  }
+  .dl__os {
+    font-weight: 600;
+    font-size: 1.05rem;
+  }
+  .dl__ext {
+    font-size: 0.85rem;
+  }
+  .dl__note {
+    font-size: 0.85rem;
+    margin-top: var(--s2);
+  }
+
+  .faq-list {
+    max-width: 760px;
+  }
+
+  @media (max-width: 900px) {
+    .grid--3,
+    .steps {
+      grid-template-columns: 1fr 1fr;
+    }
+    .privacy-band__inner {
+      grid-template-columns: 1fr;
+      text-align: left;
+    }
+  }
+  @media (max-width: 600px) {
+    .grid--3,
+    .grid--2,
+    .steps {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dl {
+      transition: none;
+    }
+  }
+</style>

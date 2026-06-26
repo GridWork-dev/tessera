@@ -1,0 +1,51 @@
+---
+import Icon from "./Icon.astro";
+
+const items = [
+  { icon: "house-plug", label: "100% local" },
+  { icon: "shield-off", label: "No telemetry" },
+  { icon: "key", label: "BYO compute & keys" },
+  { icon: "git-fork", label: "Open source" },
+];
+---
+
+<div class="trust">
+  <div class="container trust__inner">
+    {
+      items.map((it) => (
+        <div class="trust__item">
+          <Icon name={it.icon} size={18} />
+          <span>{it.label}</span>
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .trust {
+    border-block: 1px solid var(--hair);
+    background: var(--panel);
+  }
+
+  .trust__inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--s6);
+    padding-block: var(--s4);
+  }
+
+  .trust__item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s2);
+    color: var(--fore2);
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .trust__item :global(svg) {
+    color: var(--accent);
+  }
+</style>

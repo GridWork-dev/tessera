@@ -1,0 +1,172 @@
+---
+import Base from "../layouts/Base.astro";
+import Section from "../components/Section.astro";
+import PageHeader from "../components/PageHeader.astro";
+import Icon from "../components/Icon.astro";
+import Button from "../components/Button.astro";
+import "../styles/content.css";
+import { RELEASES_URL } from "../config";
+
+const pillars = [
+  {
+    icon: "search",
+    title: "Semantic search",
+    body: "Search your library the way you remember it — in words, not filenames. Type \"golden hour on the beach\" or \"person in a red coat\" and the local vision model finds the frames that match the pixels, ranked by relevance. No manual tagging required to get started.",
+    points: ["Natural-language queries", "Visual similarity (\"more like this\")", "Combine with filters: person, place, rating"],
+    shot: "Browse · semantic search",
+  },
+  {
+    icon: "users",
+    title: "Faces & people",
+    body: "Recognize and group every appearance of a person across your whole library. Face embeddings are computed and stored locally — there is no cloud face database, and nothing about who is in your images ever leaves your machine.",
+    points: ["Local face clustering", "Name people once, find them everywhere", "Private by design — embeddings stay on disk"],
+    shot: "People · face clusters",
+  },
+  {
+    icon: "map-pin",
+    title: "Places & events",
+    body: "Turn the location and time data you already have into trips, events, and places. Browse by where and when without any map provider tracking your queries.",
+    points: ["Cluster by location and time", "Trips and moments, automatically", "No third-party map calls"],
+    shot: "Places · located library",
+  },
+  {
+    icon: "clapperboard",
+    title: "Video scenes & transcripts",
+    body: "Video is a first-class citizen. Clips are split into scenes, keyframes are extracted, and speech is transcribed locally — so you can search inside your footage as easily as your stills.",
+    points: ["Automatic scene detection", "Keyframe posters per scene", "Local speech-to-text transcripts"],
+    shot: "Videos · scenes & posters",
+  },
+  {
+    icon: "tags",
+    title: "Auto-tagging & captions",
+    body: "Every asset is described for you. Local models assign structured tags and write a natural-language caption, giving you a browsable, filterable index of your entire library on day one.",
+    points: ["Structured, categorized tags", "Written captions per asset", "Fully offline vision models"],
+    shot: "Inspector · tags & captions",
+  },
+  {
+    icon: "sparkles",
+    title: "Personalization",
+    body: "The library learns your taste. As you keep and reject frames, it adapts its ranking to surface the shots you'd actually pick — a model that works for you and stays on your machine.",
+    points: ["Learns your keep / reject signal", "Better picks over time", "Your preferences never sync to a server"],
+    shot: "Training · keep / reject",
+  },
+];
+---
+
+<Base title="Features" description="Semantic search, faces, places, video scenes, auto-tagging, and personalization — all running locally on your machine.">
+  <Section>
+    <PageHeader
+      eyebrow="Features"
+      title="A complete, private library — built from the pixels up."
+      lead="Six pillars that turn a folder of files into something you can actually search, browse, and rediscover. All of it local."
+    />
+  </Section>
+
+  {pillars.map((p, i) => (
+    <Section tone={i % 2 === 0 ? "panel" : "void"}>
+      <div class:list={["pillar", { "pillar--rev": i % 2 === 1 }]}>
+        <div class="pillar__copy">
+          <div class="pillar__icon"><Icon name={p.icon} size={22} /></div>
+          <h2>{p.title}</h2>
+          <p class="lead pillar__lead">{p.body}</p>
+          <ul class="pillar__points">
+            {p.points.map((pt) => (
+              <li><Icon name="check" size={18} /><span>{pt}</span></li>
+            ))}
+          </ul>
+        </div>
+        <div class="shot pillar__shot">
+          <span class="shot__frame">
+            <span class="shot__label">{p.shot}</span>
+            <span class="shot__hint">Interface preview</span>
+          </span>
+        </div>
+      </div>
+    </Section>
+  ))}
+
+  <Section>
+    <div class="cta-band">
+      <h2>See it on your own library.</h2>
+      <Button href={RELEASES_URL} icon="download" size="lg" external>Download</Button>
+    </div>
+  </Section>
+</Base>
+
+<style>
+  .pillar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s7);
+    align-items: center;
+  }
+  .pillar--rev .pillar__copy {
+    order: 2;
+  }
+  .pillar__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--r-tile);
+    display: grid;
+    place-items: center;
+    background: var(--accent-weak);
+    color: var(--accent);
+    border: 1px solid var(--accent2);
+    margin-bottom: var(--s4);
+  }
+  .pillar__lead {
+    margin-top: var(--s4);
+    max-width: 50ch;
+  }
+  .pillar__points {
+    list-style: none;
+    padding: 0;
+    margin-top: var(--s5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--s2);
+  }
+  .pillar__points li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--s2);
+    color: var(--fore2);
+    font-size: 0.95rem;
+  }
+  .pillar__points :global(svg) {
+    color: var(--accent);
+    flex: none;
+    margin-top: 2px;
+  }
+  .shot__frame {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--s1);
+  }
+  .shot__label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--fore2);
+  }
+  .shot__hint {
+    font-size: 0.72rem;
+    color: var(--fore3);
+  }
+  .cta-band {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s5);
+    flex-wrap: wrap;
+  }
+  @media (max-width: 860px) {
+    .pillar {
+      grid-template-columns: 1fr;
+      gap: var(--s5);
+    }
+    .pillar--rev .pillar__copy {
+      order: 0;
+    }
+  }
+</style>

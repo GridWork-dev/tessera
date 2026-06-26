@@ -1,0 +1,67 @@
+name: CI
+
+# Lint + test gate. The test matrix proves the platform-support contract
+# (docs/support-matrix.md): the FULL stack on Apple Silicon, and the CORE app
+# (server + browse + keyword/caption search) on x86_64 Intel macOS, where the
+# heavy ML wheels are absent by design (requirements.txt markers).
+#
+# NOTE: macOS runners bill at a higher multiplier — this runs on push to main +
+# PRs. Narrow the triggers if minutes matter.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: python -m pip install ruff==0.15.18
+      - name: ruff (lint + format)
+        run: |
+          ruff check .
+          ruff format --check .
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: biome (frontend)
+        run: cd frontend && npm ci && npx biome ci .
+
+  test:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: arm64 (Apple Silicon) — full stack
+            os: macos-14
+            full: true
+          - label: x86_64 (Intel) — core
+            os: macos-13
+            full: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: libvips (pyvips runtime)
+        run: brew install vips
+      - name: Install (env markers select the platform subset)
+        run: |
+          python -m venv venv
+          ./venv/bin/python -m pip install --upgrade pip
+          ./venv/bin/python -m pip install -r requirements.txt
+      - name: Core import smoke (must pass on EVERY platform)
+        run: ./venv/bin/python -c "import webui.main; print('core import OK')"
+      - name: Full test suite (Apple Silicon)
+        if: ${{ matrix.full }}
+        run: ./venv/bin/pytest tests/ -q
+      - name: Core functional tests (Intel — ML-tier tests self-skip via importorskip)
+        if: ${{ !matrix.full }}
+        run: ./venv/bin/pytest tests/test_owner_scoping.py -q

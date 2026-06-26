@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Tier-2 caption sweep LaunchAgent (Stage 4, ~3-day background job).
+
+  Install (do NOT load until the Tier-0 re-tag + embed passes are done):
+    cp scripts/com.mediapipeline.caption-sweep.plist ~/Library/LaunchAgents/
+    launchctl load   ~/Library/LaunchAgents/com.mediapipeline.caption-sweep.plist
+  Stop / remove:
+    launchctl unload ~/Library/LaunchAgents/com.mediapipeline.caption-sweep.plist
+
+  KeepAlive={Crashed:true} restarts ONLY on a non-zero exit (server-down / parse
+  error), never on a clean drain (exit 0). RunAtLoad runs at load and re-runs at
+  login/boot so the sweep resumes after a reboot. NEVER use a bare KeepAlive=true
+  here — that would respawn the script forever even after the subset is drained.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.mediapipeline.caption-sweep</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/gw/media-pipeline/scripts/caption_sweep.sh</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <dict>
+        <key>Crashed</key>
+        <true/>
+    </dict>
+
+    <!-- Throttle restarts so a persistently-down server doesn't hot-loop. -->
+    <key>ThrottleInterval</key>
+    <integer>60</integer>
+
+    <key>StandardOutPath</key>
+    <string>/Users/gw/media-pipeline/data/caption_sweep.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/gw/media-pipeline/data/caption_sweep.err.log</string>
+
+    <!-- Be a good citizen: low priority, background scheduling. -->
+    <key>ProcessType</key>
+    <string>Background</string>
+    <key>Nice</key>
+    <integer>5</integer>
+</dict>
+</plist>

@@ -1,0 +1,28 @@
+# Media Pipeline — shipped portable defaults (committed; the AGPL-source template).
+#
+# This is the lowest-precedence config layer. It contains NO machine-specific
+# absolute paths — every path is RELATIVE to the resolved project_root (which
+# defaults to the repo/app root, derived at runtime), so the same file works on
+# any box and inside a frozen app bundle.
+#
+# Resolution precedence (lowest -> highest), see pipeline/settings.py:
+#   1. this defaults.yaml
+#   2. per-user config at platformdirs user_config_dir("media-pipeline")/config.yaml
+#   3. the repo's config.yaml IF present (back-compat for the maintainer's box)
+#   4. MEDIA_PIPELINE_* environment variables
+#
+# Leave project_root / content_root / database_path UNSET here so they derive
+# from the repo/app root at runtime. Override per-box via the user config, the
+# repo config.yaml, or MEDIA_PIPELINE_* env vars.
+
+# Paths under data/ (relative to project_root). Mirrors the current box layout.
+database:
+  path: "data/catalog.db"
+
+paths:
+  grids: "data/grids"
+
+webui:
+  host: "127.0.0.1"
+  port: 8000
+  cors_origins: ["http://localhost:3000", "http://localhost:5173"]

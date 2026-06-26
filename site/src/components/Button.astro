@@ -1,0 +1,96 @@
+---
+import Icon from "./Icon.astro";
+
+interface Props {
+  href: string;
+  variant?: "primary" | "ghost";
+  size?: "md" | "lg";
+  icon?: string;
+  iconRight?: string;
+  external?: boolean;
+  class?: string;
+}
+
+const {
+  href,
+  variant = "primary",
+  size = "md",
+  icon,
+  iconRight,
+  external,
+  class: cls,
+} = Astro.props;
+
+const rel = external ? "noopener noreferrer" : undefined;
+const target = external ? "_blank" : undefined;
+---
+
+<a
+  href={href}
+  class:list={["btn", `btn--${variant}`, `btn--${size}`, cls]}
+  rel={rel}
+  target={target}
+>
+  {icon && <Icon name={icon} size={size === "lg" ? 20 : 18} />}
+  <span><slot /></span>
+  {iconRight && <Icon name={iconRight} size={size === "lg" ? 20 : 18} />}
+</a>
+
+<style>
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s2);
+    border-radius: var(--r-button);
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition:
+      background-color 160ms ease-out,
+      border-color 160ms ease-out,
+      color 160ms ease-out;
+    white-space: nowrap;
+  }
+
+  .btn--md {
+    padding: 10px var(--s4);
+  }
+
+  .btn--lg {
+    padding: 14px var(--s5);
+    font-size: 1rem;
+  }
+
+  .btn--primary {
+    background: var(--accent);
+    color: var(--on-accent);
+    border-color: var(--accent);
+  }
+
+  .btn--primary:hover {
+    background: color-mix(in srgb, var(--accent) 88%, white);
+    border-color: color-mix(in srgb, var(--accent) 88%, white);
+    color: var(--on-accent);
+  }
+
+  .btn--ghost {
+    background: transparent;
+    color: var(--fore);
+    border-color: var(--line2);
+  }
+
+  .btn--ghost:hover {
+    background: var(--surface);
+    border-color: var(--line2);
+    color: var(--fore);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn {
+      transition: none;
+    }
+  }
+</style>

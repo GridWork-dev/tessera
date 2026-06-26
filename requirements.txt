@@ -1,0 +1,69 @@
+# Media Pipeline — Python 3.14.6 requirements (2026-06-22)
+# Install: ./venv/bin/python3 -m pip install -r requirements.txt
+
+# ── Phase 0 additions (2026-06-22): ML stack + dev tooling ──
+# ML / tagging stack
+# Apple-Silicon-only wheels — gated by env marker so `pip install -r` SUCCEEDS on
+# x86_64 / Linux (no wheel there). The app degrades gracefully without them: the
+# ANN backend is lazy-imported (pipeline/tier1_embedder._turbovec) and vector
+# search falls back, while local MLX captioning simply isn't offered. See
+# docs/support-matrix.md.
+turbovec==0.8.0 ; platform_machine == "arm64"   # Tier 1 ANN index (Apple-Silicon wheel; replaces sqlite-vec as primary)
+mlx-vlm==0.6.3 ; sys_platform == "darwin" and platform_machine == "arm64"   # Apple MLX VLM runtime (Tier 2 local captioning)
+exifread==3.5.1                 # EXIF metadata extraction (lazy-imported by ingest)
+# Heavy ML tiers (Tier 0/1/3 taggers) — lazy-imported, "box-only". The marker
+# skips them on x86_64 macOS, where torch ships no wheel (PyTorch dropped Intel
+# macOS); they still install on Apple Silicon and on Linux+GPU. The app's core
+# (browse + keyword/caption search) runs fine without them — docs/support-matrix.md.
+onnxruntime==1.27.0 ; sys_platform != "darwin" or platform_machine == "arm64"            # WD EVA02 + NudeNet inference (Tier 0 + Tier 3)
+torch==2.12.1 ; sys_platform != "darwin" or platform_machine == "arm64"                  # Tier 1 SigLIP SO400M backend
+transformers==5.12.1 ; sys_platform != "darwin" or platform_machine == "arm64"           # Tier 1 SigLIP SO400M (AutoModel/AutoProcessor)
+huggingface_hub==1.16.1 ; sys_platform != "darwin" or platform_machine == "arm64"        # first-run weight delivery (pipeline.weights)
+nudenet==3.4.2 ; sys_platform != "darwin" or platform_machine == "arm64"                 # Tier 3 region detection (bundled 320n.onnx)
+# Dev tooling
+pytest==9.1.1                   # test runner (20 tests)
+pre-commit==4.6.0               # git hooks framework (ruff + tsc)
+ruff==0.15.18                   # linter + formatter (matches .pre-commit-config.yaml rev)
+
+# ── Core app stack ──
+annotated-doc==0.0.4
+annotated-types==0.7.0
+anyio==4.12.1
+certifi==2026.6.17
+cffi==2.0.0
+cryptography==46.0.5             # Ed25519 offline license-token verify (Spec I; abi3 Py-3.14 wheel verified)
+argon2-cffi==25.1.0             # admin-password KDF (Spec B); auth.py prefers it over PBKDF2 fallback
+charset-normalizer==3.4.7
+click==8.2.1
+fastapi==0.138.0
+httpx==0.28.1                   # test client dep (silences Starlette deprecation)
+h11==0.16.0
+idna==3.18
+imagehash==4.3.2
+numpy==2.5.0
+opencv-python-headless==4.13.0.92   # heuristic video best-frame scorer (Wave 2a); degrades if absent
+pillow==12.2.0
+platformdirs==4.10.0            # OS-appropriate data/cache/log dirs (Spec A; Py-3.14 wheel verified)
+protobuf>=4.25.8                # onnxruntime transitive (loose pin)
+psutil==7.1.3                   # host telemetry for /api/system (optional; degrades if absent)
+pycparser==3.0
+pydantic==2.13.4
+pydantic-core==2.46.4
+pydantic-settings==2.14.2       # typed, env-overridable config authority (Spec A; Py-3.14 wheel verified)
+python-dotenv==1.2.2
+python-multipart==0.0.32
+pyvips==3.1.1
+pywavelets==1.9.0
+pyyaml==6.0.3
+requests==2.34.2
+scipy==1.18.0
+sqlalchemy==2.0.51
+sqlite-vec==0.1.9
+starlette==1.3.1
+typing-extensions==4.15.0
+typing-inspection==0.4.2
+urllib3==2.7.0
+uvicorn==0.49.0
+uvloop==0.22.1
+watchfiles==1.2.0
+websockets==16.0

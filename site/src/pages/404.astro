@@ -1,0 +1,35 @@
+---
+import Base from "../layouts/Base.astro";
+import Section from "../components/Section.astro";
+import Button from "../components/Button.astro";
+---
+
+<Base title="Not found" description="That page doesn't exist.">
+  <Section>
+    <div class="nf">
+      <p class="eyebrow">404</p>
+      <h1>This page wandered off.</h1>
+      <p class="lead nf__lead">The link may be broken or the page may have moved.</p>
+      <div class="nf__cta">
+        <Button href="/" icon="arrow-left">Back home</Button>
+        <Button href="/docs" variant="ghost">Read the docs</Button>
+      </div>
+    </div>
+  </Section>
+</Base>
+
+<style>
+  .nf {
+    max-width: 48ch;
+    padding-block: var(--s7);
+  }
+  .nf__lead {
+    margin-top: var(--s4);
+  }
+  .nf__cta {
+    display: flex;
+    gap: var(--s3);
+    margin-top: var(--s6);
+    flex-wrap: wrap;
+  }
+</style>

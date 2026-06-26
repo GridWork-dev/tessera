@@ -1,0 +1,57 @@
+# Pre-commit hooks — see ADR-0001 §"git-hooks → ADOPT pre-commit framework"
+# Install: brew install pre-commit && pre-commit install
+# Run on all files: pre-commit run --all-files
+repos:
+  # --- Generic file checks (fast, universal) ---
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+        # tsconfig.*.json is JSONC (TypeScript supports comments in tsconfig);
+        # check-json validates strict JSON and rejects those idiomatic comments.
+        exclude: 'tsconfig.*\.json'
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  # --- Python: ruff (lint + format, blazing fast) ---
+  # Pinned revisions — auto-managed, no version drift between machines.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.18 # https://github.com/astral-sh/ruff-pre-commit/releases
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  # --- Frontend: TypeScript type-check (scoped to frontend/) ---
+  # Uses `tsc -b` (build mode), NOT `tsc --noEmit`: the root tsconfig.json is
+  # a solution file (files:[] + references), so --noEmit checks ZERO files.
+  # Build mode follows the project references and is the only invocation that
+  # actually type-checks the frontend. `--force` ignores any stale .tsbuildinfo
+  # cache so each commit is a fresh check.
+  # Note: this hook was silently green for the whole project history because
+  # (1) the pre-commit STAGE wasn't installed (only commit-msg), and
+  # (2) typescript wasn't installed so `npx tsc` resolved to a novelty package.
+  # Both fixed 2026-06-23: run `pre-commit install`, and the new frontend pins
+  # typescript locally — so invoke the local binary directly (no npx surprise).
+  - repo: local
+    hooks:
+      - id: tsc
+        name: TypeScript type-check (frontend only)
+        entry: sh -c 'cd frontend && node_modules/.bin/tsc -b --force'
+        language: system
+        files: ^frontend/.*\.(ts|tsx)$
+        pass_filenames: false
+      # Conventional-commit gate (commit-msg stage). Adopted from gridwork-core
+      # (lean slice). Install with: pre-commit install --hook-type commit-msg
+      - id: commit-lint
+        name: Conventional commit message
+        entry: scripts/commit_lint.sh
+        language: script
+        stages: [commit-msg]
+
+# NOTE: pytest + full eslint are too slow for per-commit. Run via `make test`
+# or add a pre-push stage: `pre-commit install --hook-type pre-push` with
+# `stages: [pre-push]` on the hook you want to defer.

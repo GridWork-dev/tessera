@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Persistent media-pipeline server (tailnet-bound) as a per-user LaunchAgent.
+  TEMPLATE: __REPO_ROOT__ is substituted with the actual repo path at install
+  time by scripts/deploy.sh (launchd needs absolute paths; deploy.sh renders
+  them from the repo it runs in, so this committed file stays box-agnostic).
+  Install/refresh via: bash scripts/deploy.sh
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.gridwork.media-pipeline</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__REPO_ROOT__/scripts/serve.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>__REPO_ROOT__</string>
+
+  <!-- Auto-start on login; restart on crash. -->
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>__REPO_ROOT__/outputs/server.log</string>
+  <key>StandardErrorPath</key>
+  <string>__REPO_ROOT__/outputs/server.log</string>
+
+  <!-- tailscale lives in /opt/homebrew/bin; give launchd a sane PATH. -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <!-- ADR-0005/0006: self-retrieval + cross-modal sanity passed (2026-06-24);
+         authorizes text2image / semantic / hybrid search. -->
+    <key>TEXT2IMAGE_GATE_PASSED</key>
+    <string>1</string>
+    <!-- Auth posture is NOT baked here (a committed AUTH_ENABLED=0 would be an
+         insecure default). serve.sh sources scripts/serve.local.env — a
+         gitignored, box-local file — where a maintainer on a trusted private
+         tailnet may set MEDIA_PIPELINE_AUTH_ENABLED=0. The shipped default lets
+         auth enforce on any non-localhost bind. -->
+  </dict>
+</dict>
+</plist>

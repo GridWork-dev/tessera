@@ -1,0 +1,129 @@
+# syntax=docker/dockerfile:1.7
+# ===========================================================================
+# FULL H100 offload image (amd64) — all 4 tiers, aligned CUDA-13 stack, GPU.
+# Built in CI on GitHub Actions; model weights pulled at RUNTIME (small image).
+#
+# BASE = CUDA-13 -devel (NOT -runtime): vLLM + Triton JIT-compile CUDA kernels at
+# startup (even with --enforce-eager, Triton gcc-compiles cuda_utils.c, and
+# flashinfer compiles its own kernels). The -runtime base lacks nvcc AND the CUDA
+# dev headers (cuda_runtime.h, curand.h, ...), so those compiles fail -> Tier-2
+# never serves. Patching headers in piecemeal (cuda-nvcc + libcurand-dev + ...) is
+# fragile; -devel ships the complete toolkit so JIT "just works". VERIFIED on an
+# H100: installing the full toolkit is exactly what made vLLM serve JoyCaption.
+# The ~3GB size bump is irrelevant — CI-built, pulled once onto a datacenter box.
+#
+# TWO VENVS (isolation): the parity-critical Tier-0/1/3 stack pins
+# transformers==5.12.1 + pillow==12.2.0 (BICUBIC resize + SigLIP code must match
+# the Mac) on its OWN cu124 torch + onnxruntime-gpu 1.22 (the only ORT whose CUDA
+# EP registers in the Vast container — see venv-tiers note below). vLLM bundles
+# its own cu130 torch + transformers, which would move those pins, so Tier-2's
+# vLLM lives in a SEPARATE venv. The runner always runs from the tiers venv and
+# talks to vLLM over HTTP, so the pins stay clean. The -devel base's CUDA-13
+# toolkit serves vLLM's JIT; the tiers venv is self-contained on cu12 regardless.
+#
+#   * NO weights baked (SigLIP pulled at its pinned rev, JoyCaption from HF at
+#     runtime; WD/JoyTag ONNX uploaded with the corpus -> exact Mac bytes, which
+#     is parity-safer than re-downloading). Keeps the image GHA-buildable.
+#   * Tier-2 (vLLM) gated behind --build-arg TIER2=1 (default ON for the full
+#     image; build with TIER2=0 for a slimmer parity-only image).
+#   * Bundles `age` to decrypt the corpus tarball on-box.
+# ===========================================================================
+FROM nvidia/cuda:13.0.0-cudnn-devel-ubuntu24.04
+
+ARG TIER2=1
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    HF_HOME=/opt/hf-cache \
+    HF_HUB_ENABLE_HF_TRANSFER=0
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3 python3-pip python3-venv \
+        git curl ca-certificates coreutils \
+        libgl1 libglib2.0-0 libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# age — decrypt the encrypted corpus tarball on-box (static release binary).
+RUN curl -fsSL \
+        https://github.com/FiloSottile/age/releases/download/v1.2.0/age-v1.2.0-linux-amd64.tar.gz \
+        | tar -xz -C /tmp \
+    && mv /tmp/age/age /tmp/age/age-keygen /usr/local/bin/ \
+    && rm -rf /tmp/age
+
+# === venv-tiers: parity-critical stack for tiers 0/1/3 ======================
+# (Ubuntu 24.04 system python is externally-managed; a venv avoids the pip
+#  self-upgrade / "externally-managed" breakage.)
+RUN python3 -m venv /opt/venv
+ENV PATH=/opt/venv/bin:$PATH
+RUN pip install --upgrade pip wheel
+
+# torch on CUDA 12 (cu124). VERIFIED on an H100: onnxruntime-gpu 1.22 (cu12)
+# registers its CUDA EP against these libs. ORT 1.27/cu13's CUDA EP silently
+# fails to register in the Vast container (its /sys/class/drm device-discovery
+# can't enumerate the GPU); ORT 1.22 predates that logic and just works.
+RUN pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124
+
+# transformers + pillow pinned to the Mac venv for SigLIP-code + BICUBIC-resize
+# parity; sentencepiece is required by the SigLIP processor (SiglipTokenizer).
+RUN pip install \
+        transformers==5.12.1 \
+        pillow==12.2.0 \
+        sentencepiece \
+        accelerate \
+        numpy \
+        requests \
+        huggingface_hub \
+        nudenet
+
+# onnxruntime-gpu 1.22.0 == a CUDA-12 build with a working CUDA EP (borrows
+# torch's cu124 libs). nudenet (above) pulls plain `onnxruntime` (CPU) which
+# SHADOWS the gpu build — so install the gpu build LAST and drop the CPU one, or
+# Tier-0/3 silently fall back to CPU.
+RUN pip uninstall -y onnxruntime onnxruntime-gpu 2>/dev/null; \
+    pip install onnxruntime-gpu==1.22.0
+
+# Register torch's nvidia (cu12) wheel lib dirs on the loader path so ORT's CUDA
+# EP resolves libcudart.so.12 / libcublasLt.so.12 / libcudnn.so.9 regardless of
+# import order.
+RUN python - <<'PY' > /etc/ld.so.conf.d/torch-cuda.conf
+import glob
+for d in sorted(glob.glob("/opt/venv/lib/python3.12/site-packages/nvidia/*/lib")):
+    print(d)
+PY
+RUN ldconfig && echo "registered torch CUDA libs:" && ldconfig -p | grep -E "libcudart.so.12|libcublasLt.so.12|libcudnn.so.9" | head
+
+# === venv-vllm: Tier-2 JoyCaption server, ISOLATED (full run only) ==========
+# Kept out of venv-tiers so vLLM's bundled torch/transformers can't move the
+# parity pins. vLLM's PyPI default is CUDA 13.0; the cu130 index pins its torch.
+# nvcc + CUDA headers come from the -devel base (see top); build-essential +
+# ninja give Triton its host C compiler + build driver for the startup JIT;
+# python3-dev supplies Python.h, which Triton's cuda_utils.c #includes.
+# CUDA_HOME/PATH let Triton & flashinfer find nvcc at *runtime*.
+ENV CUDA_HOME=/usr/local/cuda \
+    PATH=/usr/local/cuda/bin:/opt/venv/bin:$PATH
+RUN if [ "$TIER2" = "1" ]; then \
+        apt-get update && apt-get install -y --no-install-recommends \
+            build-essential ninja-build python3-dev && rm -rf /var/lib/apt/lists/* && \
+        python3 -m venv /opt/vllm-venv && \
+        /opt/vllm-venv/bin/pip install --upgrade pip wheel && \
+        /opt/vllm-venv/bin/pip install vllm \
+            --extra-index-url https://download.pytorch.org/whl/cu130 ; \
+    fi
+
+# The runner is dependency-self-contained (re-implements tier preprocessing).
+COPY scripts/remote_pipeline_runner.py /opt/remote_pipeline_runner.py
+
+WORKDIR /work
+
+# Pilot (parity gate) — tiers 0/1/3, fp32, Tier-3 on CPU (matches the Mac):
+#   python /opt/remote_pipeline_runner.py --in-dir IN --out-dir OUT \
+#     --models-dir MODELS --tiers 0,1,3 --tier1-dtype fp32 \
+#     --siglip-revision 9fdffc58afc957d1a03a25b10dba0329ab15c2a3
+#
+# Full run — all 4 tiers, GPU-optimized. First start vLLM from its venv:
+#   /opt/vllm-venv/bin/vllm serve fancyfeast/llama-joycaption-beta-one-hf-llava \
+#     --max-model-len 4096 --gpu-memory-utilization 0.85 &
+#   python /opt/remote_pipeline_runner.py --in-dir IN --out-dir OUT \
+#     --models-dir MODELS --tiers 0,1,2,3 --tier1-dtype fp32 --tier3-gpu \
+#     --vllm-url http://127.0.0.1:8000
+CMD ["python", "/opt/remote_pipeline_runner.py", "--help"]
