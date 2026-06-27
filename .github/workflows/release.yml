@@ -1,0 +1,117 @@
+name: Release
+
+# Build the unsigned desktop app (Tauri + frozen FastAPI sidecar) for macOS
+# (Apple Silicon + Intel), Windows, and Linux, and attach the artifacts to a
+# DRAFT GitHub Release. Unsigned by design — no code-signing certs — so the
+# install docs carry the per-OS "open an unsigned app" path. Review the draft's
+# artifacts, then publish it; the site's Download button points at the release.
+#
+# Trigger: push a tag `vX.Y.Z`, or run manually (workflow_dispatch) with a tag.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v0.1.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            label: macOS (Apple Silicon)
+            rust_target: aarch64-apple-darwin
+            tauri_args: "--target aarch64-apple-darwin"
+          - os: macos-13
+            label: macOS (Intel)
+            rust_target: x86_64-apple-darwin
+            tauri_args: "--target x86_64-apple-darwin"
+          - os: windows-latest
+            label: Windows
+            rust_target: x86_64-pc-windows-msvc
+            tauri_args: ""
+          - os: ubuntu-22.04
+            label: Linux
+            rust_target: x86_64-unknown-linux-gnu
+            tauri_args: ""
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Linux build deps (webkit2gtk + tauri)
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev \
+            libappindicator3-dev patchelf
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_target }}
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: ${{ matrix.os }}-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}
+
+      - name: Python deps + PyInstaller (platform markers select the subset)
+        shell: bash
+        run: |
+          python -m venv venv
+          if [ "$RUNNER_OS" = "Windows" ]; then PY=venv/Scripts/python; else PY=venv/bin/python; fi
+          "$PY" -m pip install --upgrade pip
+          "$PY" -m pip install -r requirements.txt
+          "$PY" -m pip install "pyinstaller==6.16.0"
+
+      - name: Build frontend (tsc + vite -> frontend/dist)
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
+      - name: Freeze sidecar (PyInstaller --onedir) -> src-tauri/binaries/mp-sidecar
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then PY=venv/Scripts/python; else PY=venv/bin/python; fi
+          "$PY" -m PyInstaller packaging/sidecar.spec --noconfirm \
+            --distpath packaging/dist --workpath packaging/build
+          mkdir -p src-tauri/binaries
+          rm -rf src-tauri/binaries/mp-sidecar
+          cp -R packaging/dist/mp-sidecar src-tauri/binaries/mp-sidecar
+
+      - name: Build app + upload to draft release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag }}
+          releaseName: "Tessera ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag }}"
+          releaseBody: |
+            Unsigned desktop builds (no code-signing certificate). Your OS will warn
+            on first launch — see the Install docs for the per-platform
+            "open anyway / run anyway" path. SHA-256 checksums are attached.
+          releaseDraft: true
+          prerelease: true
+          args: ${{ matrix.tauri_args }}

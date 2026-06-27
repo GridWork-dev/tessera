@@ -27,10 +27,18 @@ pub fn run() {
             // its _internal/ inside the bundle's resource dir, trying the candidate
             // layouts the bundler may produce so a mapping tweak needs no rebuild.
             let res = app.path().resource_dir().expect("resource_dir unavailable");
+            // PyInstaller names the launcher `mp-sidecar` on unix and
+            // `mp-sidecar.exe` on Windows — pick the right one or the candidate
+            // paths never match and the app panics at launch on Windows.
+            let bin = if cfg!(windows) {
+                "mp-sidecar.exe"
+            } else {
+                "mp-sidecar"
+            };
             let candidates = [
-                res.join("mp-sidecar").join("mp-sidecar"),
-                res.join("binaries").join("mp-sidecar").join("mp-sidecar"),
-                res.join("_up_").join("mp-sidecar").join("mp-sidecar"),
+                res.join("mp-sidecar").join(bin),
+                res.join("binaries").join("mp-sidecar").join(bin),
+                res.join("_up_").join("mp-sidecar").join(bin),
             ];
             let sidecar_path = candidates
                 .iter()
