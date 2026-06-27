@@ -435,6 +435,41 @@ class TestVectorDegradation:
         assert "vectors_unavailable" not in out
         assert out["total"] == 2
 
+    def test_tags_query_never_loads_text_tower(self, corpus, monkeypatch):
+        # Regression (lifecycle audit P1): the keyword lanes must NOT embed the
+        # query. run_search previously called _text_query_vector unconditionally
+        # for EVERY mode, so a non-empty query in tags/caption 500'd the whole
+        # search whenever the text tower couldn't load — e.g. the frozen desktop
+        # sidecar, which ships no torch. Make it explode and assert tags still 200s.
+        def boom(_q):
+            raise RuntimeError("text tower unavailable (simulated frozen bundle)")
+
+        monkeypatch.setattr(search_svc, "_text_query_vector", boom)
+        out = search_svc.run_search(
+            corpus,
+            q="dress",
+            raw_tags=[],
+            mode="tags",
+            rating=None,
+            person=None,
+            sort="relevance",
+            page=1,
+            page_size=50,
+        )
+        assert out["mode"] == "tags"
+        assert out["total"] == 3  # no crash; all candidates returned
+
+    def test_text_query_vector_degrades_to_none_on_embed_failure(self, monkeypatch):
+        # Regression (lifecycle audit P1): a failing/absent embedder must degrade
+        # to None (-> tag relevance), never propagate out of _text_query_vector.
+        import pipeline.text_embedder as te
+
+        def boom(_q):
+            raise RuntimeError("no torch in this build")
+
+        monkeypatch.setattr(te, "embed_text", boom)
+        assert search_svc._text_query_vector("a beach at sunset") is None
+
     def test_similar_without_vectors_returns_unavailable(self, corpus):
         out = search_svc.similar_by_id(corpus, 1, k=10, raw_tags=[])
         assert out["vectors_unavailable"] is True

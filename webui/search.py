@@ -352,10 +352,15 @@ def run_search(
     # text tower, so skip the vector-availability probe for it (and for tags).
     vectors_ok = mode not in ("tags", "caption") and vector_count(db) > 0
 
-    # A free-text query vector needs the SigLIP TEXT tower (not wired yet) AND,
-    # for text2image, the self-retrieval gate to have passed. So a vector RANK
-    # from free text is only possible when a text embedder exists.
-    can_embed_text = _text_query_vector(q) is not None
+    # A vector RANK from free text needs the SigLIP TEXT tower, which only the
+    # vector modes use — and only when vectors exist. Embed the query lazily and
+    # ONLY then, reusing the result for the vector path below. tags/caption never
+    # touch it, so those lanes stay torch-free: instant in the frozen desktop
+    # bundle (which ships no torch) and no needless model load / HF network touch
+    # on the server. If the tower can't load, query_vector is None and the vector
+    # mode degrades to tag relevance.
+    query_vector = _text_query_vector(q) if vectors_ok else None
+    can_embed_text = query_vector is not None
 
     # Resolve the EFFECTIVE mode after degradation. A vector mode degrades to
     # tag relevance unless it can actually form a query vector AND vectors exist
@@ -455,7 +460,7 @@ def run_search(
         # --- VECTOR path: vectors exist AND a text query vector was formed.
         # (Reached only once a text embedder is wired; until then the modes above
         # degrade and never fall through here.) ---
-        qvec = _text_query_vector(q)
+        qvec = query_vector
         ranked = _vector_search(
             db, session, candidate_ids, qvec, q=q, k=page * page_size
         )
@@ -531,10 +536,17 @@ def _text_query_vector(q: str | None):
     """
     if q is None or not q.strip():
         return None
-    from pipeline.text_embedder import embed_text
-    from pipeline.tier1_embedder import serialize_float32
+    try:
+        from pipeline.text_embedder import embed_text
+        from pipeline.tier1_embedder import serialize_float32
 
-    return serialize_float32(embed_text(q))
+        return serialize_float32(embed_text(q))
+    except Exception:
+        # Text tower unavailable (e.g. torch isn't bundled in the frozen desktop
+        # sidecar, or the model failed to load). Degrade gracefully: callers
+        # treat None as "no query vector" and fall back to tag relevance instead
+        # of 500-ing the whole search.
+        return None
 
 
 def _vector_search(
