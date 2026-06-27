@@ -12,6 +12,7 @@ Two flavours:
     the maintainer's private ``data/catalog.db``; they vanish on a fresh checkout.
 """
 
+import os
 import sqlite3
 import sys
 from pathlib import Path
@@ -30,7 +31,8 @@ _MIG_008 = Path(__file__).parent.parent / "data" / "migrations" / "008_caption_f
 # Box-only marker: applied per-test to the live-DB checks ONLY (not the module),
 # so the synthetic-corpus tests below always run on a clean public checkout.
 _requires_live_db = pytest.mark.skipif(
-    not _DB_PATH.exists(), reason="live data/catalog.db not present (box-only)"
+    not (os.environ.get("RUN_LIVE_DB_TESTS") and _DB_PATH.exists()),
+    reason="live-DB tests are opt-in: set RUN_LIVE_DB_TESTS=1 on a box with a populated catalog.db",
 )
 
 

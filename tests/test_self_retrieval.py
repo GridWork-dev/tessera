@@ -8,6 +8,7 @@ exits 0 (ready) — the H100 full embed run has landed (26,590 vectors in
 ``vec_siglip_1152``), so GATE 0 now passes.
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -157,7 +158,8 @@ def test_main_synthetic_insufficient_exits_2(tmp_path, capsys):
 # Opt-in; skipped on a clean checkout where data/catalog.db is absent.         #
 # --------------------------------------------------------------------------- #
 @pytest.mark.skipif(
-    not Path(DEFAULT_DB).exists(), reason="real catalog.db not present (box-only)"
+    not (os.environ.get("RUN_LIVE_DB_TESTS") and Path(DEFAULT_DB).exists()),
+    reason="live-DB test is opt-in: set RUN_LIVE_DB_TESTS=1 on a box with the real catalog.db",
 )
 def test_main_exits_0_on_real_db_with_embeddings(capsys):
     from scripts.verify_self_retrieval import main
