@@ -14,7 +14,10 @@ const settle = (page: Page, ms = 1800) => page.waitForTimeout(ms);
 // labelled "Semantic"; the input placeholder then becomes "Describe what you
 // want…". Search is reactive (debounced) — no Enter needed.
 async function semanticSearch(page: Page, query: string) {
-  await page.getByRole('button', { name: 'Semantic' }).click().catch(() => {});
+  await page
+    .getByRole('button', { name: 'Semantic' })
+    .click()
+    .catch(() => {});
   await settle(page, 400);
   const box = page.getByPlaceholder(/Describe|Search/i).first();
   await box.click({ timeout: 5000 }).catch(() => {});

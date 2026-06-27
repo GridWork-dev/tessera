@@ -37,7 +37,10 @@ def _synth_clip(out: Path, *, duration: int = 4, size: str = "320x240") -> None:
         "-shortest",
         str(out),
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True)
+    except FileNotFoundError:
+        pytest.skip("ffmpeg not installed")
     if result.returncode != 0 or not out.exists() or out.stat().st_size == 0:
         pytest.skip(f"ffmpeg could not synthesize a test clip: {result.stderr[:300]}")
 

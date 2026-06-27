@@ -48,7 +48,7 @@ def normalize_result(row: dict[str, Any]) -> dict[str, Any]:
 def _as_float(v: Any) -> float | None:
     try:
         return float(v)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return None
 
 

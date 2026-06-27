@@ -46,7 +46,10 @@ def _synth_clip(out: Path, duration: float = 4.0, size: str = "320x240") -> bool
         "-shortest",
         str(out),
     ]
-    r = subprocess.run(cmd, capture_output=True, text=True)
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True)
+    except FileNotFoundError:
+        return False
     return r.returncode == 0 and out.exists() and out.stat().st_size > 0
 
 

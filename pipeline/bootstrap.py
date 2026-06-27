@@ -31,7 +31,7 @@ from pathlib import Path
 
 from pipeline import auth, migrations
 from pipeline.database import Database
-from pipeline.settings import settings
+from pipeline.settings import REPO_ROOT, settings
 
 # Migration filenames are NNN_*.sql; the numeric prefix is the schema version
 # the file brings the DB to. The user_version ledger stores the max applied.
@@ -39,7 +39,12 @@ _MIGRATION_NUM_RE = re.compile(r"^(\d+)_")
 
 
 def _migrations_dir() -> Path:
-    return settings.project_root / "data" / "migrations"
+    # Migration SQL ships WITH the code, so resolve against REPO_ROOT (the code
+    # root), not project_root (the user's data/library root, which is overridable
+    # via config/env). In the overlay+submodule layout project_root points at the
+    # parent data dir, where no migrations exist — using it made the boot
+    # auto-migrate a silent no-op (found 0 files, returned 0).
+    return REPO_ROOT / "data" / "migrations"
 
 
 def _migration_files() -> list[tuple[int, Path]]:

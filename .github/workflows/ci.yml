@@ -13,6 +13,12 @@ on:
     branches: [main]
   pull_request:
 
+# One run per ref: a new push cancels older in-flight/queued runs so the
+# higher-latency Intel (macos-13) leg never piles up behind superseded commits.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -52,6 +58,9 @@ jobs:
           python-version: "3.14"
       - name: libvips (pyvips runtime)
         run: brew install vips
+      - name: ffmpeg (video tests — full stack only)
+        if: ${{ matrix.full }}
+        run: brew install ffmpeg
       - name: Install (env markers select the platform subset)
         run: |
           python -m venv venv
