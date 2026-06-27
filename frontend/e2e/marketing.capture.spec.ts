@@ -10,19 +10,16 @@ const OUT = path.resolve(HERE, '..', 'screenshots', 'marketing');
 
 const settle = (page: Page, ms = 1800) => page.waitForTimeout(ms);
 
-async function tryClick(makers: Array<() => ReturnType<Page['getByRole']>>) {
-  for (const make of makers) {
-    try {
-      const el = make().first();
-      if (await el.isVisible()) {
-        await el.click();
-        return true;
-      }
-    } catch {
-      /* best-effort */
-    }
-  }
-  return false;
+// Switch to Semantic mode and type a natural-language query. The mode button is
+// labelled "Semantic"; the input placeholder then becomes "Describe what you
+// want…". Search is reactive (debounced) — no Enter needed.
+async function semanticSearch(page: Page, query: string) {
+  await page.getByRole('button', { name: 'Semantic' }).click().catch(() => {});
+  await settle(page, 400);
+  const box = page.getByPlaceholder(/Describe|Search/i).first();
+  await box.click({ timeout: 5000 }).catch(() => {});
+  await box.pressSequentially(query, { delay: 42 }).catch(() => {});
+  await settle(page, 3200);
 }
 
 test('browse', async ({ page }) => {
@@ -35,42 +32,25 @@ test('browse', async ({ page }) => {
 
 test('semantic-search', async ({ page }) => {
   await page.goto('/');
+  await page.waitForLoadState('networkidle').catch(() => {});
   await settle(page, 1200);
-  await tryClick([
-    () => page.getByRole('button', { name: 'Semantic' }),
-    () => page.getByText('Semantic', { exact: true }),
-  ]);
-  await settle(page, 300);
-  try {
-    const box = page.getByPlaceholder(/Search/i).first();
-    await box.click({ timeout: 5000 });
-    await box.pressSequentially('city skyline at night', { delay: 40 });
-    await settle(page, 600);
-    await page.screenshot({ path: path.join(OUT, 'hero-typed.png') }).catch(() => {});
-    await box.press('Enter').catch(() => {});
-    await page.waitForTimeout(2500);
-  } catch {
-    /* best-effort */
-  }
-  await page.screenshot({ path: path.join(OUT, 'search-results.png') }).catch(() => {});
-  await page.screenshot({ path: path.join(OUT, 'hero-results.png') }).catch(() => {});
+  await semanticSearch(page, 'city skyline at dusk');
+  await page.screenshot({ path: path.join(OUT, 'search-results.png') });
+  await page.screenshot({ path: path.join(OUT, 'hero-results.png') });
 });
 
 test('inspector-and-similar', async ({ page }) => {
   await page.goto('/');
-  await settle(page, 1500);
+  await page.waitForLoadState('networkidle').catch(() => {});
+  await settle(page, 1000);
+  // Search first so the grid is cities (not the portrait set), then open the
+  // top result — the inspector shows caption, tags, place, and metadata.
+  await semanticSearch(page, 'city skyline at dusk');
   try {
     const grid = page.getByRole('listbox', { name: 'Asset grid' });
-    await grid.getByRole('option').nth(2).click();
-    await settle(page, 1100);
+    await grid.getByRole('option').nth(0).click();
+    await settle(page, 1600);
     await page.screenshot({ path: path.join(OUT, 'inspector.png') });
-    await tryClick([
-      () => page.getByRole('button', { name: /similar/i }),
-      () => page.getByText(/find similar/i),
-    ]);
-    await settle(page, 2000);
-    await page.screenshot({ path: path.join(OUT, 'find-similar.png') });
-    await page.screenshot({ path: path.join(OUT, 'hero-similar.png') });
   } catch {
     /* best-effort */
   }

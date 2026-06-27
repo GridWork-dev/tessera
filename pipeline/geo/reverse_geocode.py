@@ -48,7 +48,7 @@ def normalize_result(row: dict[str, Any]) -> dict[str, Any]:
 def _as_float(v: Any) -> float | None:
     try:
         return float(v)
-    except TypeError, ValueError:
+    except (TypeError, ValueError):
         return None
 
 
@@ -62,5 +62,9 @@ def lookup(coords: list[tuple[float, float]]) -> list[dict[str, Any]]:
         return []
     import reverse_geocoder as rg  # lazy: bundled GeoNames k-d tree
 
-    results = rg.search([(float(lat), float(lon)) for lat, lon in coords])
+    # mode=1 (single-threaded) on purpose: the default mode=2 spawns worker
+    # processes that fail to bootstrap in spawn contexts (subprocess/heredoc and
+    # some server workers), where search then silently returns ONE default place
+    # for every coordinate. Single-threaded is robust everywhere and fast enough.
+    results = rg.search([(float(lat), float(lon)) for lat, lon in coords], mode=1)
     return [normalize_result(r) for r in results]

@@ -21,7 +21,7 @@ export default defineConfig({
   use: {
     baseURL: APP,
     ...devices['Desktop Chrome'],
-    viewport: { width: 1600, height: 1000 },
+    viewport: { width: 1920, height: 1080 },
     deviceScaleFactor: 2,
     screenshot: 'off',
   },
